@@ -49,6 +49,17 @@ function registerOrder(data) {
     color: '',
     ...data,
   };
+
+  // Cache instantâneo local para que se o cliente ou lojista clicar no link imediatamente
+  // a página de detalhes já encontre os dados em 0ms
+  try {
+    const cleanCode = (order.code || '').replace('#', '').toUpperCase();
+    if (cleanCode) {
+      localStorage.setItem(`nte_order_${cleanCode}`, JSON.stringify(order));
+      localStorage.setItem('nte_last_order', JSON.stringify(order));
+    }
+  } catch (e) {}
+
   // The popup is opened synchronously by the caller; registering the order must
   // never block contact. Failures are silent (e.g. when the storefront is offline).
   Promise.resolve(window.ntDB?.init())
@@ -188,20 +199,28 @@ function openWhatsAppGreeting() {
  */
 function orderProductViaWhatsApp(product, size = null, color = null, qty = null) {
   const quantity = Math.max(1, Math.floor(Number(qty) || 1));
-  const photoUrl = getProductCleanPhotoUrl(product) || getProductImageUrl(product);
-  const pageUrl = getProductPageUrl(product);
-  const orderCode = '#NTE-' + Math.floor(1000 + Math.random() * 9000);
+  const orderNum = Math.floor(1000 + Math.random() * 9000);
+  const orderCode = `#NTE-${orderNum}`;
+  const cleanCode = `NTE-${orderNum}`;
+  const origin = (typeof window !== 'undefined' && window.location?.origin)
+    ? window.location.origin
+    : 'https://nteleganz.com.br';
+  const orderPageUrl = `${origin}/order/${cleanCode}`;
+  const itemPhoto = getProductImageUrl(product) || getProductCleanPhotoUrl(product);
 
   let message = `Olá! Quero fechar o pedido:\n\n`;
-  message += `🏷️ *Pedido:* ${orderCode}\n\n`;
-  message += `• *${product?.brand || 'NT Eleganz'} — ${product?.name || 'Produto'}*\n`;
-  if (size) message += `  Tamanho: ${size}\n`;
-  if (color) message += `  Cor: ${color}\n`;
-  if (quantity > 1) message += `  Quantidade: ${quantity}\n`;
-  if (product?.price) message += `  Preço: ${product.price}\n`;
-  if (photoUrl) message += `  📸 Foto: ${photoUrl}\n`;
-  if (pageUrl) message += `  🔗 Link: ${pageUrl}\n`;
-  message += `\nPoderia me dar mais detalhes sobre disponibilidade e envio? 🙏`;
+  message += `🏷️ *Código do Pedido:* ${orderCode}\n\n`;
+  message += `*Item Selecionado:*\n`;
+  message += `• *${product?.brand ? `${product.brand} — ` : ''}${product?.name || 'Produto'}*\n`;
+  if (size) message += `   Tam: ${size}\n`;
+  if (color) message += `   Cor: ${color}\n`;
+  if (quantity > 1) message += `   Qtd: ${quantity}\n`;
+  if (product?.price) message += `   Preço: ${product.price}\n`;
+  message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+  message += `💰 *Total: ${product?.price || 'A combinar'}*\n\n`;
+  message += `📋 *Ver Detalhes do Pedido e Fotos:*\n`;
+  message += `👉 ${orderPageUrl}\n\n`;
+  message += `Poderia me dar mais detalhes sobre disponibilidade e envio? 🙏`;
 
   window.open(generateWhatsAppUrl(message), '_blank');
   registerLead({
@@ -213,7 +232,7 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
     color: color || '',
     quantity: quantity,
     value: product?.price || '',
-    imageUrl: photoUrl || '',
+    imageUrl: itemPhoto || '',
     messagePreview: message,
   });
   registerOrder({
@@ -225,7 +244,7 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
     color: color || '',
     quantity: quantity,
     value: product?.price || '',
-    imageUrl: photoUrl || '',
+    imageUrl: itemPhoto || '',
     items: [{
       id: product?.id || '',
       brand: product?.brand || '',
@@ -234,9 +253,9 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
       color: color || '',
       qty: quantity,
       price: product?.price || '',
-      image: photoUrl || '',
+      image: itemPhoto || '',
     }],
-    notes: `Pedido direto pelo site${quantity > 1 ? ` — Quantidade: ${quantity}` : ''}${photoUrl ? ` — Foto: ${photoUrl}` : ''}`,
+    notes: `Pedido direto pelo site${quantity > 1 ? ` — Qtd: ${quantity}` : ''}`,
   });
 }
 
@@ -248,27 +267,34 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
 function checkoutViaWhatsApp(cartItems, total) {
   if (!cartItems || cartItems.length === 0) return;
 
-  const orderCode = '#NTE-' + Math.floor(1000 + Math.random() * 9000);
+  const orderNum = Math.floor(1000 + Math.random() * 9000);
+  const orderCode = `#NTE-${orderNum}`;
+  const cleanCode = `NTE-${orderNum}`;
+  const origin = (typeof window !== 'undefined' && window.location?.origin)
+    ? window.location.origin
+    : 'https://nteleganz.com.br';
+  const orderPageUrl = `${origin}/order/${cleanCode}`;
+
   let message = `Olá! Quero fechar o pedido:\n\n`;
-  message += `🏷️ *Pedido:* ${orderCode}\n\n`;
-  message += `*Itens do Pedido:*\n`;
+  message += `🏷️ *Código do Pedido:* ${orderCode}\n\n`;
+  message += `*Itens do Pedido (${cartItems.length}):*\n`;
 
   cartItems.forEach((item, i) => {
-    const photoUrl = getProductCleanPhotoUrl(item) || getProductImageUrl(item);
     const quantity = Math.max(1, Math.floor(Number(item.qty) || 1));
-    message += `${i + 1}. *${item.brand || 'NT Eleganz'} — ${item.name || 'Produto'}*\n`;
+    message += `${i + 1}. *${item.brand ? `${item.brand} — ` : ''}${item.name || 'Produto'}*\n`;
     const details = [];
     if (item.size) details.push(`Tam: ${item.size}`);
     if (item.color) details.push(`Cor: ${item.color}`);
     if (quantity > 1) details.push(`Qtd: ${quantity}`);
     if (details.length) message += `   ${details.join(' | ')}\n`;
     if (item.price) message += `   Preço: ${item.price}\n`;
-    if (photoUrl) message += `   📸 Foto: ${photoUrl}\n`;
     message += `\n`;
   });
 
-  message += `━━━━━━━━━━━━━━━\n`;
+  message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
   message += `💰 *Total: ${total}*\n\n`;
+  message += `📋 *Ver Detalhes do Pedido e Fotos:*\n`;
+  message += `👉 ${orderPageUrl}\n\n`;
   message += `Aguardo confirmação de disponibilidade e forma de pagamento. Obrigado! 🙏`;
 
   window.open(generateWhatsAppUrl(message), '_blank');
@@ -288,7 +314,7 @@ function checkoutViaWhatsApp(cartItems, total) {
     color: cartItems.map(item => item.color).filter(Boolean).join(', ') || '',
     quantity: cartItems.reduce((acc, it) => acc + (Number(it.qty) || 1), 0),
     value: total || '',
-    imageUrl: getProductCleanPhotoUrl(cartItems[0]) || getProductImageUrl(cartItems[0]) || '',
+    imageUrl: getProductImageUrl(cartItems[0]) || getProductCleanPhotoUrl(cartItems[0]) || '',
     items: cartItems.map(item => ({
       id: item.id || '',
       brand: item.brand || '',
@@ -297,12 +323,11 @@ function checkoutViaWhatsApp(cartItems, total) {
       color: item.color || '',
       qty: Number(item.qty) || 1,
       price: item.price || '',
-      image: getProductCleanPhotoUrl(item) || getProductImageUrl(item) || '',
+      image: getProductImageUrl(item) || getProductCleanPhotoUrl(item) || '',
     })),
     notes: [
       ...cartItems.map((item, i) => {
-        const photo = getProductCleanPhotoUrl(item) || getProductImageUrl(item);
-        return `${i + 1}. ${item.brand || 'NT Eleganz'} — ${item.name || 'Produto'}${item.size ? ` | Tam: ${item.size}` : ''}${item.color ? ` | Cor: ${item.color}` : ''} | ${item.price}${photo ? ` | Foto: ${photo}` : ''}`;
+        return `${i + 1}. ${item.brand || 'NT Eleganz'} — ${item.name || 'Produto'}${item.size ? ` | Tam: ${item.size}` : ''}${item.color ? ` | Cor: ${item.color}` : ''} | ${item.price}`;
       }),
       '',
       'Origem: checkout do carrinho (WhatsApp)',

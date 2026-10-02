@@ -66,12 +66,53 @@ function saveLocalOrders(array $orders): void {
 
 $method = $_SERVER['REQUEST_METHOD'];
 $orderId = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
+$orderCode = isset($_GET['code']) ? trim((string)$_GET['code']) : '';
 
 $rawBody = file_get_contents('php://input');
 $input = $rawBody ? json_decode($rawBody, true) : null;
 
 switch ($method) {
     case 'GET':
+        // Busca pedido específico por código (#NTE-XXXX / NTE-XXXX) ou ID
+        if ($orderCode !== '' || $orderId !== '') {
+            $searchCode = strtoupper(ltrim($orderCode, '#'));
+            $searchId = strtolower($orderId);
+
+            $local = readLocalOrders();
+            $found = null;
+            foreach ($local as $o) {
+                $c = strtoupper(ltrim((string)($o['code'] ?? ''), '#'));
+                $i = strtolower((string)($o['id'] ?? ''));
+                if (($searchCode !== '' && $c === $searchCode) || ($searchId !== '' && $i === $searchId)) {
+                    $found = $o;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $vps = callVpsOrders('GET', VPS_API_ORDERS);
+                if ($vps !== null && isset($vps['orders']) && is_array($vps['orders'])) {
+                    saveLocalOrders($vps['orders']);
+                    foreach ($vps['orders'] as $o) {
+                        $c = strtoupper(ltrim((string)($o['code'] ?? ''), '#'));
+                        $i = strtolower((string)($o['id'] ?? ''));
+                        if (($searchCode !== '' && $c === $searchCode) || ($searchId !== '' && $i === $searchId)) {
+                            $found = $o;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($found) {
+                echo json_encode(['success' => true, 'order' => $found]);
+            } else {
+                http_response_code(404);
+                echo json_encode(['error' => 'Pedido não encontrado', 'code' => $orderCode ?: $orderId]);
+            }
+            exit;
+        }
+
         $vps = callVpsOrders('GET', VPS_API_ORDERS);
         if ($vps !== null && isset($vps['orders'])) {
             saveLocalOrders($vps['orders']);
@@ -97,7 +138,10 @@ switch ($method) {
 
         $vps = callVpsOrders('POST', VPS_API_ORDERS, $input);
         if ($vps !== null && isset($vps['order'])) {
-            $created = $vps['order'];
+            $created = array_merge($input, $vps['order']);
+            if (empty($created['items']) && !empty($input['items'])) {
+                $created['items'] = $input['items'];
+            }
             $local = readLocalOrders();
             array_unshift($local, $created);
             saveLocalOrders($local);
