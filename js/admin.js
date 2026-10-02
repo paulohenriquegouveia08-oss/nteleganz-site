@@ -1651,10 +1651,11 @@ window.openOrderModal = function (orderId = null) {
       <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px; padding:12px 14px; border-radius:10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.2);">
         ${orderThumb ? `<img src="${escHtml(orderThumb)}" alt="" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111; cursor:pointer;" onclick="window.open('${escHtml(orderThumb)}', '_blank')" title="Clique para ver imagem">` : ''}
         <div style="flex:1;">
-          <div style="display:flex; align-items:center; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             ${orderCodeBadge}
             <span style="font-size:12px; color:var(--text-muted);">${orderData.createdAt ? fmt.date(orderData.createdAt) : ''}</span>
             ${orderData.source === 'site' ? '<span class="badge badge-gold" style="font-size:10px;">🌐 Site</span>' : ''}
+            ${orderData.code ? `<a href="/order/${encodeURIComponent(orderData.code.replace('#',''))}" target="_blank" class="badge" style="background:rgba(255,255,255,0.08);color:var(--text-primary);text-decoration:none;font-size:11px;padding:3px 8px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;display:inline-flex;align-items:center;gap:4px;" title="Abrir página detalhada do pedido">🔗 Ver no Site</a>` : ''}
           </div>
           <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-top:4px;">${escHtml(orderData.productName || 'Detalhes do Pedido')}</div>
         </div>
