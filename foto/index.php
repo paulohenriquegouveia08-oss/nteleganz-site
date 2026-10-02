@@ -1,7 +1,14 @@
 <?php
 // NT ELEGANZ — Clean Image Proxy
-// Permite acessar a foto da peça por slug limpo: /foto/?p=camiseta-polo-bear-rl-grey-g
+// Permite acessar a foto da peça por slug limpo: /foto/camiseta-polo-bear-rl-grey-g.jpg ou /foto/?p=...
 $productQuery = isset($_GET['p']) ? trim((string)$_GET['p']) : (isset($_GET['slug']) ? trim((string)$_GET['slug']) : (isset($_GET['id']) ? trim((string)$_GET['id']) : ''));
+
+if ($productQuery === '') {
+    $uriPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    if (preg_match('#/foto/([^/?]+)#', $uriPath, $m)) {
+        $productQuery = trim($m[1]);
+    }
+}
 
 if ($productQuery === '') {
     http_response_code(404);
@@ -64,17 +71,28 @@ function getProductCleanSlug(array $p, array $all): string {
     return $suffix !== '' ? "{$candidate}-{$suffix}" : $candidate;
 }
 
+$requestedExt = strtolower(pathinfo($productQuery, PATHINFO_EXTENSION));
+$cleanSlug = preg_replace('/\.(jpe?g|png|webp|avif)$/i', '', $productQuery);
+
+$candidates = array_unique(array_filter([
+    strtolower($productQuery),
+    strtolower($cleanSlug),
+    urldecode(strtolower($productQuery)),
+    urldecode(strtolower($cleanSlug)),
+]));
+
 $product = null;
-$q = strtolower($productQuery);
 foreach ($products as $p) {
-    if (isset($p['id']) && strtolower((string)$p['id']) === $q) {
+    $pId = strtolower((string)($p['id'] ?? ''));
+    if (in_array($pId, $candidates, true)) {
         $product = $p;
         break;
     }
 }
 if (!$product) {
     foreach ($products as $p) {
-        if (getProductCleanSlug($p, $products) === $q) {
+        $pClean = getProductCleanSlug($p, $products);
+        if (in_array($pClean, $candidates, true)) {
             $product = $p;
             break;
         }
@@ -82,7 +100,8 @@ if (!$product) {
 }
 if (!$product) {
     foreach ($products as $p) {
-        if (isset($p['slug']) && strtolower((string)$p['slug']) === $q) {
+        $pSlug = isset($p['slug']) ? strtolower((string)$p['slug']) : '';
+        if ($pSlug !== '' && in_array($pSlug, $candidates, true)) {
             $product = $p;
             break;
         }
@@ -105,11 +124,32 @@ $relPath = ltrim((string)$parsed, '/');
 $filePath = __DIR__ . '/../' . $relPath;
 
 if (!file_exists($filePath)) {
-    header('Location: ' . $img, true, 302);
+    if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
+        header('Location: ' . $img, true, 302);
+    } else {
+        header('Location: https://137-131-233-254.sslip.io/nteleganz/uploads/' . basename($img), true, 302);
+    }
     exit;
 }
 
-$ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+$fileExt = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+$ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$isSocialCrawler = (stripos($ua, 'WhatsApp') !== false || stripos($ua, 'facebookexternalhit') !== false || stripos($ua, 'Twitterbot') !== false);
+$isJpegRequested = in_array($requestedExt, ['jpg', 'jpeg'], true) || $isSocialCrawler;
+
+// Se solicitado JPEG ou detectado crawler do WhatsApp/redes sociais e o original for WebP,
+// converte on-the-fly para JPEG para gerar rich link preview no WhatsApp
+if ($isJpegRequested && $fileExt === 'webp' && function_exists('imagecreatefromwebp') && function_exists('imagejpeg')) {
+    $im = @imagecreatefromwebp($filePath);
+    if ($im) {
+        header('Content-Type: image/jpeg');
+        header('Cache-Control: public, max-age=31536000, immutable');
+        imagejpeg($im, null, 90);
+        imagedestroy($im);
+        exit;
+    }
+}
+
 $mimeMap = [
     'webp' => 'image/webp',
     'jpg'  => 'image/jpeg',
@@ -117,7 +157,7 @@ $mimeMap = [
     'png'  => 'image/png',
     'avif' => 'image/avif',
 ];
-$mime = $mimeMap[$ext] ?? 'application/octet-stream';
+$mime = $mimeMap[$fileExt] ?? 'application/octet-stream';
 
 header('Content-Type: ' . $mime);
 header('Cache-Control: public, max-age=31536000, immutable');

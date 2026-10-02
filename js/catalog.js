@@ -229,10 +229,12 @@
   }
 
   function cardSrcset(src) {
-    const m = (src || '').match(/^assets\/images\/[^?]+\.webp(?:\?.*)?$/);
-    if (!m) return '';
-    const base = src.replace(/\.webp(\?.*)?$/, '');
-    return ` srcset="${esc(base)}-400.webp 1x, ${esc(base)}-800.webp 2x"`;
+    if (!src || src.includes('products/')) return '';
+    if (src.includes('cutout')) {
+      const base = src.replace(/\.webp(\?.*)?$/, '');
+      return ` srcset="${esc(base)}-400.webp 1x, ${esc(base)}-800.webp 2x"`;
+    }
+    return '';
   }
 
   function renderCard(p) {
@@ -364,9 +366,50 @@
 
   function initLoadMore() {
     const btn = document.getElementById('load-more-btn');
-    btn?.addEventListener('click', () => {
+    if (!btn) return;
+    btn.setAttribute('type', 'button');
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const currentScroll = window.scrollY;
+      const prevCount = page * PER_PAGE;
       page++;
-      render();
+
+      const visible = getVisible();
+      const newItems = visible.slice(prevCount, page * PER_PAGE);
+      const grid = document.getElementById('catalog-grid');
+
+      if (grid && newItems.length > 0) {
+        const fragment = document.createRange().createContextualFragment(newItems.map(renderCard).join(''));
+        const firstNewEl = fragment.firstElementChild;
+        grid.appendChild(fragment);
+
+        const total = visible.length;
+        const currentTotalShowing = Math.min(page * PER_PAGE, total);
+        const countEl = document.getElementById('catalog-total-count');
+        const showEl  = document.getElementById('showing-count');
+        const loadWrap = document.getElementById('load-more-wrap');
+
+        if (countEl) countEl.textContent = `${total} produto${total !== 1 ? 's' : ''}`;
+        if (showEl) showEl.textContent = `${currentTotalShowing} de ${total} produto${total !== 1 ? 's' : ''}`;
+        if (loadWrap) loadWrap.style.display = currentTotalShowing < total ? 'block' : 'none';
+
+        // Evita salto de scroll do navegador no mobile
+        window.scrollTo({ top: currentScroll, behavior: 'instant' });
+
+        // Ajusta suavemente o scroll para os novos produtos sem jogar a pessoa pro rodapé
+        if (firstNewEl) {
+          setTimeout(() => {
+            const rect = firstNewEl.getBoundingClientRect();
+            if (rect.top > window.innerHeight - 100) {
+              firstNewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }, 60);
+        }
+      } else {
+        render();
+      }
     });
   }
 
@@ -482,9 +525,6 @@
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) revalidateCatalog();
   });
-  window.setInterval(() => {
-    if (!document.hidden) revalidateCatalog();
-  }, 20000);
 
   // ══════════════════════════════════════════
   //  19. DOMContentLoaded — BOOTSTRAP

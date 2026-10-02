@@ -88,9 +88,9 @@ DirectoryIndex index.php index.html index.htm
     RewriteRule ^\.git(/|$) - [F,L]
     RewriteRule ^data(/|$) - [F,L]
 
-    # Roteamento amigável para PDP dinâmica (OpenGraph e redes sociais)
-    RewriteRule ^products/?$ products/index.php [L,QSA]
-    RewriteRule ^foto/?$ foto/index.php [L,QSA]
+    # Roteamento amigável para PDP dinâmica (OpenGraph e redes sociais) e fotos limpas
+    RewriteRule ^products(?:/([a-zA-Z0-9_.-]+))?/?$ products/index.php?p=$1 [L,QSA]
+    RewriteRule ^foto(?:/([a-zA-Z0-9_.-]+))?/?$ foto/index.php?p=$1 [L,QSA]
 
     # Fallback automático para fotos de produtos: se o arquivo não existir fisicamente na Hostinger,
     # redireciona para a VPS (onde as fotos estão salvas e intactas)

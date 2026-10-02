@@ -42,6 +42,9 @@
     const record = { ...item };
     if (!record.createdAt && record.created_at) record.createdAt = record.created_at;
     if (!record.updatedAt && record.updated_at) record.updatedAt = record.updated_at;
+    if (!record.productName && record.product_name) record.productName = record.product_name;
+    if (!record.productBrand && record.product_brand) record.productBrand = record.product_brand;
+    if (!record.imageUrl && record.image_url) record.imageUrl = record.image_url;
     if (record.image) record.image = upgradeBuiltinImage(record.image);
     if (Array.isArray(record.images)) record.images = record.images.map(upgradeBuiltinImage);
     return record;
@@ -615,8 +618,22 @@
     return payload;
   }
 
+    function ordersUrl(query = {}) {
+      const base = '/api/orders.php';
+      const params = new URLSearchParams();
+      if (query.id) params.set('id', query.id);
+      const qs = params.toString();
+      return qs ? `${base}?${qs}` : base;
+    }
+
   const hostingerDB = {
     async getAll(collection, options = {}) {
+      if (collection === 'orders') {
+        const response = await fetch(ordersUrl(), { cache: 'no-store' });
+        const payload = await parseResponse(response);
+        return Array.isArray(payload?.orders) ? payload.orders.map(normalizeRecord) : [];
+      }
+
       if (collection !== 'products') {
         throw new Error(`A API da Hostinger não atende a coleção "${collection}".`);
       }
@@ -651,6 +668,10 @@
     },
 
     async getById(collection, id) {
+      if (collection === 'orders') {
+        const all = await this.getAll('orders');
+        return all.find(o => String(o.id) === String(id) || String(o.code) === String(id)) || null;
+      }
       if (collection !== 'products') return null;
       const response = await fetch(productsUrl({ id }), { cache: 'no-store' });
       if (response.status === 404) return null;
@@ -659,6 +680,15 @@
     },
 
     async add(collection, item) {
+      if (collection === 'orders') {
+        const response = await fetch(ordersUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        });
+        const payload = await parseResponse(response);
+        return normalizeRecord(payload?.order || item);
+      }
       if (collection !== 'products') throw new Error('A API da Hostinger só grava produtos.');
       const token = await adminAccessToken();
       if (!token) {
@@ -674,7 +704,23 @@
       return normalizeRecord(payload?.product);
     },
 
+    async submit(collection, item) {
+      if (collection === 'orders') {
+        return await this.add('orders', item);
+      }
+      return await this.add(collection, item);
+    },
+
     async update(collection, id, updates) {
+      if (collection === 'orders') {
+        const response = await fetch(ordersUrl({ id }), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...updates, id }),
+        });
+        const payload = await parseResponse(response);
+        return normalizeRecord(payload?.order || { id, ...updates });
+      }
       if (collection !== 'products') throw new Error('A API da Hostinger só grava produtos.');
       const token = await adminAccessToken();
       if (!token) {
@@ -691,6 +737,13 @@
     },
 
     async delete(collection, id) {
+      if (collection === 'orders') {
+        const response = await fetch(ordersUrl({ id }), {
+          method: 'DELETE',
+        });
+        await parseResponse(response);
+        return true;
+      }
       if (collection !== 'products') throw new Error('A API da Hostinger só apaga produtos.');
       const token = await adminAccessToken();
       if (!token) {
@@ -749,7 +802,7 @@
   // API da Hostinger, que não as atende, e o admin perderia pedidos/leads.
   function backendFor(collection) {
     if (activeBackend !== hostingerDB) return activeBackend;
-    if (collection === 'products') return hostingerDB;
+    if (collection === 'products' || collection === 'orders') return hostingerDB;
     if (supabaseAvailable) return supabaseDB;
     throw new Error(
       `A coleção "${collection}" continua no Supabase, mas o SDK não pôde ser inicializado. ` +

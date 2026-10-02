@@ -519,6 +519,25 @@
     renderRecentOrders();
   }
 
+  function getOrderThumbnail(o) {
+    if (!o) return '';
+    if (o.imageUrl && typeof o.imageUrl === 'string' && o.imageUrl.trim() !== '') {
+      return o.imageUrl;
+    }
+    if (Array.isArray(o.items) && o.items[0]?.image) {
+      return o.items[0].image;
+    }
+    if (o.productId && allProducts.length) {
+      const p = allProducts.find(x => String(x.id) === String(o.productId));
+      if (p) return p.image || (Array.isArray(p.images) && p.images[0]) || '';
+    }
+    if (o.productName && allProducts.length) {
+      const p = allProducts.find(x => x.name && x.name.toLowerCase() === o.productName.toLowerCase());
+      if (p) return p.image || (Array.isArray(p.images) && p.images[0]) || '';
+    }
+    return '';
+  }
+
   function renderRecentOrders() {
     const tbody = document.getElementById('recent-orders-body');
     if (!tbody) return;
@@ -526,19 +545,28 @@
     const recent = [...allOrders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
 
     if (recent.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><p>Nenhum pedido registrado</p><small>Registre o primeiro pedido na seção Pedidos</small></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><p>Nenhum pedido registrado</p><small>Registre o primeiro pedido na seção Pedidos</small></div></td></tr>`;
       return;
     }
 
-    tbody.innerHTML = recent.map(o => `
-      <tr>
-        <td style="color:var(--text-primary); font-weight:500;">${escHtml(o.client || '—')}</td>
-        <td>${escHtml(o.productName || '—')}</td>
-        <td style="color:var(--gold); font-weight:600;">${escHtml(o.value || '—')}</td>
-        <td>${statusBadge(o.status)}</td>
-        <td>${fmt.date(o.createdAt)}</td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = recent.map(o => {
+      const code = escHtml(o.code || ('#NTE-' + String(o.id).slice(-4).toUpperCase()));
+      const thumb = getOrderThumbnail(o);
+      const thumbHtml = thumb
+        ? `<img src="${escHtml(thumb)}" alt="" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111; cursor:pointer;" onclick="window.open('${escHtml(thumb)}', '_blank')" onerror="this.onerror=null; this.src='../assets/images/logo.png'; this.style.opacity='0.4';" />`
+        : `<div style="width:36px; height:36px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; color:var(--text-muted);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+      return `
+        <tr>
+          <td><span class="badge badge-gold" style="font-family:monospace; font-size:11px; font-weight:700;">${code}</span></td>
+          <td>${thumbHtml}</td>
+          <td style="color:var(--text-primary); font-weight:500;">${escHtml(o.client || '—')}</td>
+          <td>${escHtml(o.productName || '—')}</td>
+          <td style="color:var(--gold); font-weight:600;">${escHtml(o.value || '—')}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${fmt.date(o.createdAt)}</td>
+        </tr>
+      `;
+    }).join('');
   }
 
   // ══════════════════════════════════════════
@@ -1460,22 +1488,44 @@
       return;
     }
 
-    tbody.innerHTML = orders.map((o, idx) => `
+    tbody.innerHTML = orders.map((o) => {
+      const code = escHtml(o.code || ('#NTE-' + String(o.id).slice(-4).toUpperCase()));
+      const thumb = getOrderThumbnail(o);
+      const hasMultiple = Array.isArray(o.items) && o.items.length > 1;
+      const thumbHtml = thumb 
+        ? `<div style="position:relative; width:44px; height:44px; flex-shrink:0;">
+             <img src="${escHtml(thumb)}" alt="" style="width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111; cursor:pointer;" onclick="window.open('${escHtml(thumb)}', '_blank')" onerror="this.onerror=null; this.src='../assets/images/logo.png'; this.style.opacity='0.4';" />
+             ${hasMultiple ? `<span style="position:absolute; bottom:-3px; right:-3px; background:var(--gold,#c9a84c); color:#000; font-size:9px; font-weight:800; border-radius:10px; padding:1px 5px; line-height:1.2;">+${o.items.length}</span>` : ''}
+           </div>`
+        : `<div style="width:44px; height:44px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; color:var(--text-muted);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+
+      let productDetails = '';
+      if (hasMultiple) {
+        productDetails = `<span style="color:var(--gold); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">${o.items.length} itens no pedido</span><br>`;
+        productDetails += `<span style="font-size:12px; color:var(--text-secondary);">${escHtml(o.items.map(it => `${it.qty || 1}x ${it.name}`).join(', '))}</span>`;
+      } else {
+        if (o.productBrand) {
+          productDetails += `<span style="color:var(--gold); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600;">${escHtml(o.productBrand)}</span><br>`;
+        }
+        productDetails += `<span style="color:var(--text-primary); font-weight:500;">${escHtml(o.productName || '—')}</span>`;
+      }
+
+      return `
       <tr>
-        <td style="color:var(--text-muted); font-size:11px;">#${String(idx + 1).padStart(3, '0')}</td>
+        <td>
+          <span class="badge badge-gold" style="font-family:monospace; font-size:11px; font-weight:700; letter-spacing:0.05em;">${code}</span>
+        </td>
+        <td>${thumbHtml}</td>
         <td>
           ${o.source === 'site' ? '<span class="badge badge-gold" title="Pedido feito pelo site" style="margin-right:6px;">🌐 Site</span>' : ''}
           <span style="color:var(--text-primary); font-weight:500;">${escHtml(o.client || '—')}</span>
-          ${o.phone ? `<br><span style="font-size:11px; color:var(--text-muted);">${escHtml(o.phone)}</span>` : ''}
+          ${o.phone ? `<br><a href="https://wa.me/${o.phone.replace(/\\D/g, '')}" target="_blank" style="font-size:11px; color:var(--text-muted); text-decoration:none; display:inline-flex; align-items:center; gap:3px;">💬 ${escHtml(o.phone)}</a>` : ''}
         </td>
-        <td>
-          <span style="color:var(--gold); font-size:11px; text-transform:uppercase; letter-spacing:0.08em;">${escHtml(o.productBrand || '')}</span>
-          <br>${escHtml(o.productName || '—')}
-        </td>
+        <td>${productDetails}</td>
         <td>${escHtml([o.size, o.color].filter(Boolean).join(' / ') || '—')}</td>
-        <td style="color:var(--text-primary); font-weight:600;">${escHtml(o.value || '—')}</td>
+        <td style="color:var(--gold, #c9a84c); font-weight:600;">${escHtml(o.value || '—')}</td>
         <td>
-          <select class="admin-select" style="font-size:10px; padding:4px 24px 4px 6px;" onchange="updateOrderStatus('${o.id}', this.value)">
+          <select class="admin-select" style="font-size:11px; padding:4px 24px 4px 6px;" onchange="updateOrderStatus('${o.id}', this.value)">
             ${['novo','confirmado','enviado','entregue','cancelado'].map(s =>
               `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`
             ).join('')}
@@ -1484,9 +1534,9 @@
         <td style="font-size:11px;">${fmt.date(o.createdAt)}</td>
         <td>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:nowrap;">
-            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editOrder('${o.id}')" title="Editar" style="padding:6px 10px; font-size:12px; white-space:nowrap;">
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editOrder('${o.id}')" title="Ver / Editar" style="padding:6px 10px; font-size:12px; white-space:nowrap;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:middle;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              <span>Editar</span>
+              <span>Ver</span>
             </button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); confirmDeleteOrder('${o.id}')" title="Excluir" style="padding:6px 10px; font-size:12px; white-space:nowrap;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:middle;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -1495,7 +1545,7 @@
           </div>
         </td>
       </tr>
-    `).join('');
+    `}).join('');
   }
 
   window.updateOrderStatus = async function (id, status) {
@@ -1582,19 +1632,62 @@ window.openOrderModal = function (orderId = null) {
     body.style.cssText = `padding: 24px !important; max-height: 65vh !important; overflow-y: auto !important; background: var(--bg-surface, #0f0f0f) !important;`;
     
     // Build form
-    const productsHtml = allProducts.filter(p => p.active !== false).map(p =>
-      `<option value="${p.id}" data-brand="${escHtml(p.brand)}" data-name="${escHtml(p.name)}" data-price="${escHtml(p.price)}">${escHtml(p.brand)} — ${escHtml(p.name)}</option>`
-    ).join('');
-    
     let orderData = {};
     if (orderId) {
       const o = allOrders.find(o => o.id === orderId);
       if (o) orderData = o;
     }
+
+    const productsHtml = allProducts.filter(p => p.active !== false).map(p =>
+      `<option value="${p.id}" ${String(p.id) === String(orderData.productId) ? 'selected' : ''} data-brand="${escHtml(p.brand)}" data-name="${escHtml(p.name)}" data-price="${escHtml(p.price)}" data-image="${escHtml(p.image || (p.images && p.images[0]) || '')}">${escHtml(p.brand)} — ${escHtml(p.name)}</option>`
+    ).join('');
+
+    const orderThumb = getOrderThumbnail(orderData);
+    const orderCodeBadge = orderData.code
+      ? `<span class="badge badge-gold" style="font-family:monospace;font-size:13px;padding:4px 10px;font-weight:700;">${escHtml(orderData.code)}</span>`
+      : (orderId ? `<span class="badge badge-gold" style="font-family:monospace;font-size:13px;padding:4px 10px;font-weight:700;">#NTE-${String(orderId).slice(-4).toUpperCase()}</span>` : '');
+
+    const headerPreview = (orderCodeBadge || orderThumb) ? `
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px; padding:12px 14px; border-radius:10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.2);">
+        ${orderThumb ? `<img src="${escHtml(orderThumb)}" alt="" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111; cursor:pointer;" onclick="window.open('${escHtml(orderThumb)}', '_blank')" title="Clique para ver imagem">` : ''}
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${orderCodeBadge}
+            <span style="font-size:12px; color:var(--text-muted);">${orderData.createdAt ? fmt.date(orderData.createdAt) : ''}</span>
+            ${orderData.source === 'site' ? '<span class="badge badge-gold" style="font-size:10px;">🌐 Site</span>' : ''}
+          </div>
+          <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-top:4px;">${escHtml(orderData.productName || 'Detalhes do Pedido')}</div>
+        </div>
+      </div>
+    ` : '';
+
+    const itemsPreview = (Array.isArray(orderData.items) && orderData.items.length > 0) ? `
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border,rgba(201,168,76,0.2));border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:.8rem;font-weight:600;color:var(--gold,#c9a84c);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Itens do Pedido (${orderData.items.length})</div>
+        <div style="display:grid;gap:12px;">
+          ${orderData.items.map((it, idx) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:${idx < orderData.items.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none'};">
+              ${it.image ? `<img src="${escHtml(it.image)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid rgba(201,168,76,0.3);background:#111;cursor:pointer;" onclick="window.open('${escHtml(it.image)}', '_blank')" title="Clique para abrir foto em alta resolução">` : `<div style="width:48px;height:48px;border-radius:8px;background:#222;display:flex;align-items:center;justify-content:center;color:#666;">🖼️</div>`}
+              <div style="flex:1;">
+                <div style="font-weight:600;font-size:.9rem;color:var(--text-primary);">${escHtml(it.brand ? `${it.brand} — ` : '')}${escHtml(it.name || 'Produto')}</div>
+                <div style="font-size:.8rem;color:var(--text-muted);margin-top:2px;">
+                  ${it.size ? `Tam: <strong>${escHtml(it.size)}</strong> ` : ''}
+                  ${it.color ? `| Cor: <strong>${escHtml(it.color)}</strong> ` : ''}
+                  | Qtd: <strong>${escHtml(String(it.qty || 1))}</strong>
+                </div>
+              </div>
+              <div style="font-weight:700;color:var(--gold,#c9a84c);font-size:.95rem;">${escHtml(it.price || '')}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
     
     body.innerHTML = `
       <input type="hidden" id="order-edit-id" value="${orderId || ''}">
       <div style="display:grid;gap:16px;">
+        ${headerPreview}
+        ${itemsPreview}
         <div>
           <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Nome do Cliente *</label>
           <input type="text" id="o-client" value="${escHtml(orderData.client || '')}" placeholder="João Silva" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
@@ -1714,6 +1807,7 @@ window.openOrderModal = function (orderId = null) {
       productId: sel?.value || '',
       productName: opt?.dataset.name || '',
       productBrand: opt?.dataset.brand || '',
+      imageUrl: opt?.dataset.image || '',
       size: getVal('o-size'),
       color: getVal('o-color'),
       value: getVal('o-value'),
@@ -1728,9 +1822,12 @@ window.openOrderModal = function (orderId = null) {
 
     try {
       if (id) {
-        await window.ntDB.orders.update(id, orderData);
+        const existing = allOrders.find(o => o.id === id) || {};
+        const merged = { ...existing, ...orderData };
+        if (existing.imageUrl && !orderData.imageUrl) merged.imageUrl = existing.imageUrl;
+        await window.ntDB.orders.update(id, merged);
         const idx = allOrders.findIndex(o => o.id === id);
-        if (idx !== -1) allOrders[idx] = { ...allOrders[idx], ...orderData };
+        if (idx !== -1) allOrders[idx] = { ...allOrders[idx], ...merged };
       } else {
         const newO = await window.ntDB.orders.add(orderData);
         allOrders.push(newO);

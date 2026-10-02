@@ -104,6 +104,5 @@
       }
     });
     load();
-    window.setInterval(() => { if (!document.hidden) window.ntDB?.refresh?.('settings'); }, 10000);
   });
 })();

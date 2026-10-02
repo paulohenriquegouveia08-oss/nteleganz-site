@@ -1322,14 +1322,22 @@ body {
   min-height: min(720px, 80svh);
   border-radius: 28px;
   box-shadow: 0 22px 54px rgba(20, 18, 15, .14);
+  background-color: #141716 !important;
+}
+
+.collection-banner--lake {
+  background-color: #141716 !important;
+  background-image: url('../assets/images/lifestyle-gallery-1-400.webp');
+  background-size: cover;
+  background-position: center;
 }
 
 .collection-banner--lake .collection-banner__overlay {
-  background: linear-gradient(90deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, .08) 48%, rgba(0, 0, 0, .72));
+  background: linear-gradient(90deg, rgba(0, 0, 0, .42), rgba(0, 0, 0, .14) 48%, rgba(0, 0, 0, .75));
 }
 
 .collection-banner--lake:hover .collection-banner__overlay {
-  background: linear-gradient(90deg, rgba(0, 0, 0, .36), rgba(0, 0, 0, .14) 48%, rgba(0, 0, 0, .8));
+  background: linear-gradient(90deg, rgba(0, 0, 0, .48), rgba(0, 0, 0, .2) 48%, rgba(0, 0, 0, .82));
 }
 
 .story-banner {
@@ -2266,11 +2274,16 @@ body {
   .collection-banner {
     min-height: 560px;
     border-radius: 18px;
+    background-color: #141716 !important;
   }
 
   .collection-banner--lake {
     min-height: 0;
     aspect-ratio: 3 / 4;
+    background-color: #141716 !important;
+    background-image: url('../assets/images/lifestyle-gallery-1-400.webp');
+    background-size: cover;
+    background-position: center;
   }
 
   .collection-banner--lake img {
@@ -2445,15 +2458,26 @@ body {
   }
 
   body:has(.product-page) .whatsapp-float {
-    width: 46px;
-    height: 46px;
-    left: 12px;
-    bottom: 12px;
+    width: 50px;
+    height: 50px;
+    left: 14px;
+    bottom: 14px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+  }
+
+  body:has(.product-page) .whatsapp-float::before {
+    display: none !important;
+    content: none !important;
   }
 
   body:has(.product-page) .whatsapp-float svg {
-    width: 23px;
-    height: 23px;
+    width: 26px;
+    height: 26px;
+    margin: 0 !important;
   }
 }
 

@@ -168,10 +168,12 @@
 
   // ── Render product card HTML ──
   function respSrcset(src) {
-    const m = (src || '').match(/^assets\/images\/[^?]+\.webp(?:\?.*)?$/);
-    if (!m) return '';
-    const base = src.replace(/\.webp(\?.*)?$/, '');
-    return ` srcset="${escHtml(base)}-400.webp 1x, ${escHtml(base)}-800.webp 2x"`;
+    if (!src || src.includes('products/')) return '';
+    if (src.includes('cutout')) {
+      const base = src.replace(/\.webp(\?.*)?$/, '');
+      return ` srcset="${escHtml(base)}-400.webp 1x, ${escHtml(base)}-800.webp 2x"`;
+    }
+    return '';
   }
 
   function renderProductCard(product) {
@@ -535,8 +537,5 @@ function renderCatalogSections() {
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) revalidateCatalog();
   });
-  window.setInterval(() => {
-    if (!document.hidden) revalidateCatalog();
-  }, 20000);
 
 })();
