@@ -38,6 +38,8 @@ const PRODUCTS_FILE = DATA_DIR . '/products.json';
 const BACKUP_DIR = DATA_DIR . '/backups';
 const BACKUP_KEEP = 20;
 
+const VPS_API_BASE = 'https://137-131-233-254.sslip.io/nteleganz/api';
+
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 const WRITE_RATE_MAX = 120;
 const WRITE_RATE_WINDOW = 3600;
@@ -50,13 +52,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $method = $_SERVER['REQUEST_METHOD'];
 $productId = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
 
-// ── Leitura pública ────────────────────────────────────────────────
-// HEAD responde igual ao GET, só sem corpo: é assim que o storefront
-// revalida o ETag do catálogo sem baixar a lista inteira.
+/**
+ * Realiza requisição para a API do PostgreSQL na VPS (137.131.233.254)
+ */
+function callVpsApi(string $method, string $path, ?array $body = null, ?string $token = null): ?array
+{
+    $url = VPS_API_BASE . $path;
+    $ch = curl_init($url);
+    if (!$ch) return null;
+
+    $headers = ['Accept: application/json'];
+    if ($body !== null) {
+        $headers[] = 'Content-Type: application/json';
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+    }
+    if ($token !== null && $token !== '') {
+        $headers[] = 'Authorization: Bearer ' . $token;
+    }
+
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false || $httpCode < 200 || $httpCode >= 400) {
+        return null;
+    }
+
+    $decoded = json_decode($response, true);
+    return is_array($decoded) ? $decoded : null;
+}
+
+// ── Leitura pública (PostgreSQL na VPS + Fallback Cache) ──────────────
 if ($method === 'GET' || $method === 'HEAD') {
+    // 1. Consulta o PostgreSQL na VPS (Fonte de Verdade Primária)
+    $path = '/products' . ($productId !== '' ? '?id=' . urlencode($productId) : '');
+    $vps = callVpsApi('GET', $path);
+
+    if ($vps !== null) {
+        $version = (int)($vps['version'] ?? 45);
+        $etagVal = '"v' . $version . '"';
+        etag($etagVal);
+
+        if ($productId !== '' && isset($vps['product'])) {
+            respond(200, null, ['product' => $vps['product'], 'version' => $version]);
+        }
+        if (isset($vps['products']) && is_array($vps['products'])) {
+            // Sincroniza silenciosamente o cache local
+            @file_put_contents(PRODUCTS_FILE, json_encode([
+                'version' => $version,
+                'updatedAt' => date('c'),
+                'products' => $vps['products']
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+            respond(200, null, ['products' => $vps['products'], 'version' => $version]);
+        }
+    }
+
+    // 2. Fallback de Segurança: se a VPS estiver momentaneamente inacessível, lê do cache local
     $catalog = readCatalog();
     if ($catalog === null) {
-        respond(500, 'Catálogo indisponível: não foi possível ler products.json.');
+        respond(500, 'Catálogo indisponível: não foi possível conectar ao banco de dados nem ler cache local.');
     }
 
     etag($catalog['etag']);
@@ -118,6 +181,17 @@ if (trim($raw) !== '') {
 
 switch ($method) {
     case 'POST':
+        // Salva primeiro na VPS (PostgreSQL)
+        $vps = callVpsApi('POST', '/products', $input, $token);
+        if ($vps !== null && isset($vps['product'])) {
+            $created = $vps['product'];
+            $version = (int)($vps['version'] ?? 45);
+            $catalog = readCatalog() ?: ['version' => 45, 'products' => []];
+            insertProduct($created, $catalog);
+            respond(201, null, ['product' => $created, 'version' => $version]);
+        }
+
+        // Fallback local se VPS indisponível
         $catalog = readCatalog();
         if ($catalog === null) {
             respond(500, 'Catálogo corrompido: products.json não pôde ser lido. Restaure um backup.');
@@ -127,13 +201,24 @@ switch ($method) {
             respond(400, 'Produto inválido: id, brand, name e price são obrigatórios.');
         }
         respond(201, null, ['product' => $created, 'version' => $catalog['version']]);
-        // no break — respond() encerra a execução
 
     case 'PUT':
         $id = trim((string)($input['id'] ?? $productId));
         if ($id === '') {
             respond(400, 'Informe o id do produto a atualizar.');
         }
+
+        // Salva no PostgreSQL na VPS
+        $vps = callVpsApi('PUT', '/products/' . urlencode($id), $input, $token);
+        if ($vps !== null && isset($vps['product'])) {
+            $updated = $vps['product'];
+            $version = (int)($vps['version'] ?? 45);
+            $catalog = readCatalog() ?: ['version' => 45, 'products' => []];
+            updateProduct($id, $updated, $catalog);
+            respond(200, null, ['product' => $updated, 'version' => $version]);
+        }
+
+        // Fallback local se VPS indisponível
         $catalog = readCatalog();
         if ($catalog === null) {
             respond(500, 'Catálogo corrompido: products.json não pôde ser lido. Restaure um backup.');
@@ -146,19 +231,27 @@ switch ($method) {
             respond(404, 'Produto não encontrado.');
         }
         respond(200, null, ['product' => $updated['product'], 'version' => $catalog['version']]);
-        // no break
 
     case 'DELETE':
         $id = trim((string)($productId !== '' ? $productId : ($input['id'] ?? '')));
         if ($id === '') {
             respond(400, 'Informe o id do produto a excluir.');
         }
+
+        // Deleta no PostgreSQL na VPS
+        $vps = callVpsApi('DELETE', '/products/' . urlencode($id), null, $token);
+        if ($vps !== null && !empty($vps['success'])) {
+            deleteProduct($id);
+            $version = (int)($vps['version'] ?? 45);
+            respond(200, null, ['deleted' => $id, 'version' => $version]);
+        }
+
+        // Fallback local
         $removed = deleteProduct($id);
         if (!$removed['ok']) {
             respond(404, 'Produto não encontrado.');
         }
         respond(200, null, ['deleted' => $id, 'version' => $removed['version']]);
-        // no break
 
     default:
         header('Allow: GET, POST, PUT, DELETE, OPTIONS');
