@@ -177,7 +177,6 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
   if (color) message += `  Cor: ${color}\n`;
   if (quantity > 1) message += `  Quantidade: ${quantity}\n`;
   if (product?.price) message += `  Preço: ${product.price}\n`;
-  if (photoUrl) message += `  📸 Foto da peça: ${photoUrl}\n`;
   if (pageUrl) message += `  🔗 Ver no site: ${pageUrl}\n`;
   message += `\nPoderia me dar mais detalhes sobre disponibilidade e envio? 🙏`;
 
@@ -226,7 +225,6 @@ function checkoutViaWhatsApp(cartItems, total) {
     if (quantity > 1) details.push(`Qtd: ${quantity}`);
     if (details.length) message += `   ${details.join(' | ')}\n`;
     if (item.price) message += `   Preço: ${item.price}\n`;
-    if (photoUrl) message += `   📸 Foto: ${photoUrl}\n`;
     message += `\n`;
   });
 

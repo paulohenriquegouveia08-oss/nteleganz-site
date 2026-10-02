@@ -111,26 +111,12 @@ if ($productQuery !== '') {
             $desc = "{$price} — {$desc}";
         }
 
-        // Image URL
-        $img = '';
-        if (!empty($product['image']) && is_string($product['image'])) {
-            $img = $product['image'];
-        } elseif (!empty($product['images']) && is_array($product['images']) && !empty($product['images'][0])) {
-            $img = $product['images'][0];
-        }
-
-        if ($img !== '') {
-            if (strpos($img, 'http://') !== 0 && strpos($img, 'https://') !== 0) {
-                $img = 'https://nteleganz.com.br/' . ltrim($img, '/');
-            }
-            $imgEscaped = htmlspecialchars($img, ENT_QUOTES, 'UTF-8');
-
-            $html = preg_replace('/<meta\s+property=["\']og:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta property="og:image" content="' . $imgEscaped . '" />', $html, 1);
-            $html = preg_replace('/<meta\s+name=["\']twitter:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta name="twitter:image" content="' . $imgEscaped . '" />', $html);
-        }
-
         $cleanSlug = getProductCleanSlug($product, $allProducts);
         $canonical = 'https://nteleganz.com.br/products/?p=' . urlencode($cleanSlug);
+        $cleanPhoto = 'https://nteleganz.com.br/foto/?p=' . urlencode($cleanSlug);
+
+        $html = preg_replace('/<meta\s+property=["\']og:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta property="og:image" content="' . $cleanPhoto . '" />', $html, 1);
+        $html = preg_replace('/<meta\s+name=["\']twitter:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta name="twitter:image" content="' . $cleanPhoto . '" />', $html);
 
         $html = preg_replace('/<title[^>]*>.*?<\/title>/i', "<title id=\"page-title\">{$title}</title>", $html, 1);
         $html = preg_replace('/<meta\s+property=["\']og:title["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta property="og:title" content="' . $title . '" />', $html, 1);
