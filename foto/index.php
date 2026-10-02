@@ -123,7 +123,35 @@ $parsed = parse_url($img, PHP_URL_PATH);
 $relPath = ltrim((string)$parsed, '/');
 $filePath = __DIR__ . '/../' . $relPath;
 
-if (!file_exists($filePath)) {
+$rawImageBytes = null;
+if (file_exists($filePath)) {
+    $rawImageBytes = @file_get_contents($filePath);
+} else {
+    // Busca na VPS onde os uploads estão armazenados e salva em cache local
+    $vpsUrl = 'https://137-131-233-254.sslip.io/nteleganz/uploads/' . basename($img);
+    $ch = curl_init($vpsUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT => 8,
+    ]);
+    $res = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code === 200 && !empty($res)) {
+        $rawImageBytes = $res;
+        $dir = dirname($filePath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+        @file_put_contents($filePath, $rawImageBytes);
+    }
+}
+
+if (!$rawImageBytes) {
     if (strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0) {
         header('Location: ' . $img, true, 302);
     } else {
@@ -137,10 +165,10 @@ $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $isSocialCrawler = (stripos($ua, 'WhatsApp') !== false || stripos($ua, 'facebookexternalhit') !== false || stripos($ua, 'Twitterbot') !== false);
 $isJpegRequested = in_array($requestedExt, ['jpg', 'jpeg'], true) || $isSocialCrawler;
 
-// Se solicitado JPEG ou detectado crawler do WhatsApp/redes sociais e o original for WebP,
-// converte on-the-fly para JPEG para gerar rich link preview no WhatsApp
-if ($isJpegRequested && $fileExt === 'webp' && function_exists('imagecreatefromwebp') && function_exists('imagejpeg')) {
-    $im = @imagecreatefromwebp($filePath);
+// Se solicitado JPEG ou detectado crawler do WhatsApp/redes sociais,
+// converte on-the-fly para JPEG para gerar preview e compatibilidade total
+if ($isJpegRequested && function_exists('imagecreatefromstring') && function_exists('imagejpeg')) {
+    $im = @imagecreatefromstring($rawImageBytes);
     if ($im) {
         header('Content-Type: image/jpeg');
         header('Cache-Control: public, max-age=31536000, immutable');
@@ -157,10 +185,10 @@ $mimeMap = [
     'png'  => 'image/png',
     'avif' => 'image/avif',
 ];
-$mime = $mimeMap[$fileExt] ?? 'application/octet-stream';
+$mime = $mimeMap[$fileExt] ?? 'image/webp';
 
 header('Content-Type: ' . $mime);
 header('Cache-Control: public, max-age=31536000, immutable');
-header('Content-Length: ' . filesize($filePath));
-readfile($filePath);
+header('Content-Length: ' . strlen($rawImageBytes));
+echo $rawImageBytes;
 exit;
