@@ -208,19 +208,25 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
   const orderPageUrl = `${origin}/order/${cleanCode}`;
   const itemPhoto = getProductImageUrl(product) || getProductCleanPhotoUrl(product);
 
-  let message = `Olá! Quero fechar o pedido:\n\n`;
-  message += `🏷️ *Código do Pedido:* ${orderCode}\n\n`;
-  message += `*Item Selecionado:*\n`;
-  message += `• *${product?.brand ? `${product.brand} — ` : ''}${product?.name || 'Produto'}*\n`;
-  if (size) message += `   Tam: ${size}\n`;
-  if (color) message += `   Cor: ${color}\n`;
-  if (quantity > 1) message += `   Qtd: ${quantity}\n`;
-  if (product?.price) message += `   Preço: ${product.price}\n`;
-  message += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
-  message += `💰 *Total: ${product?.price || 'A combinar'}*\n\n`;
-  message += `📋 *Ver Detalhes do Pedido e Fotos:*\n`;
-  message += `👉 ${orderPageUrl}\n\n`;
-  message += `Poderia me dar mais detalhes sobre disponibilidade e envio? 🙏`;
+  const brand = product?.brand ? `${product.brand} — ` : '';
+  const name = product?.name || 'Produto';
+
+  const specs = [];
+  if (size) specs.push(`Tamanho: ${size}`);
+  if (color) specs.push(`Cor: ${color}`);
+  if (quantity > 1) specs.push(`Qtd: ${quantity}`);
+  const specsText = specs.length > 0 ? specs.join(' | ') : '';
+
+  let message = `Olá! Gostaria de fechar o seguinte pedido:\n\n`;
+  message += `*Pedido:* ${orderCode}\n\n`;
+  message += `*Produto:*\n`;
+  message += `${brand}${name}\n`;
+  if (specsText) message += `${specsText}\n`;
+  if (product?.price) message += `Valor: ${product.price}\n`;
+  message += `\n*Total:* ${product?.price || 'A combinar'}\n\n`;
+  message += `*Fotos e detalhes completos do pedido:*\n`;
+  message += `${orderPageUrl}\n\n`;
+  message += `Poderia me confirmar a disponibilidade e o envio?`;
 
   window.open(generateWhatsAppUrl(message), '_blank');
   registerLead({
@@ -275,27 +281,31 @@ function checkoutViaWhatsApp(cartItems, total) {
     : 'https://nteleganz.com.br';
   const orderPageUrl = `${origin}/order/${cleanCode}`;
 
-  let message = `Olá! Quero fechar o pedido:\n\n`;
-  message += `🏷️ *Código do Pedido:* ${orderCode}\n\n`;
-  message += `*Itens do Pedido (${cartItems.length}):*\n`;
+  let message = `Olá! Gostaria de fechar o meu pedido:\n\n`;
+  message += `*Pedido:* ${orderCode}\n\n`;
+  message += `*Itens do Pedido (${cartItems.length}):*\n\n`;
 
   cartItems.forEach((item, i) => {
     const quantity = Math.max(1, Math.floor(Number(item.qty) || 1));
-    message += `${i + 1}. *${item.brand ? `${item.brand} — ` : ''}${item.name || 'Produto'}*\n`;
-    const details = [];
-    if (item.size) details.push(`Tam: ${item.size}`);
-    if (item.color) details.push(`Cor: ${item.color}`);
-    if (quantity > 1) details.push(`Qtd: ${quantity}`);
-    if (details.length) message += `   ${details.join(' | ')}\n`;
-    if (item.price) message += `   Preço: ${item.price}\n`;
+    const brand = item.brand ? `${item.brand} — ` : '';
+    const name = item.name || 'Produto';
+
+    const specs = [];
+    if (item.size) specs.push(`Tamanho: ${item.size}`);
+    if (item.color) specs.push(`Cor: ${item.color}`);
+    if (quantity > 1) specs.push(`Qtd: ${quantity}`);
+    const specsText = specs.length > 0 ? specs.join(' | ') : '';
+
+    message += `${i + 1}. ${brand}${name}\n`;
+    if (specsText) message += `${specsText}\n`;
+    if (item.price) message += `Valor: ${item.price}\n`;
     message += `\n`;
   });
 
-  message += `━━━━━━━━━━━━━━━━━━━━━━\n`;
-  message += `💰 *Total: ${total}*\n\n`;
-  message += `📋 *Ver Detalhes do Pedido e Fotos:*\n`;
-  message += `👉 ${orderPageUrl}\n\n`;
-  message += `Aguardo confirmação de disponibilidade e forma de pagamento. Obrigado! 🙏`;
+  message += `*Total:* ${total}\n\n`;
+  message += `*Fotos e detalhes completos do pedido:*\n`;
+  message += `${orderPageUrl}\n\n`;
+  message += `Aguardo a confirmação de disponibilidade e o pagamento. Obrigado!`;
 
   window.open(generateWhatsAppUrl(message), '_blank');
   registerLead({
