@@ -1,0 +1,26 @@
+# ==========================================
+# NT Eleganz - Regras de Proteção de Deploy
+# ==========================================
+
+# Catálogo dinâmico e imagens de produtos em produção
+# (Esses arquivos vivem no servidor Hostinger e NUNCA devem ser sobrescritos pelo Git)
+data/products.json
+data/backups/
+assets/images/products/
+
+# Arquivos de sistema operacional e metadados
+.DS_Store
+Thumbs.db
+*:Zone.Identifier*
+*.Zone.Identifier
+
+# Arquivos de backup e pacotes locais
+*.zip
+*.tar.gz
+*.rar
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo

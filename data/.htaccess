@@ -1,0 +1,10 @@
+# products.json, backups/ e o lock de escrita não podem ser baixados pela web.
+# A API (api/products.php) lê este diretório pelo sistema de arquivos, então
+# estas regras não afetam o funcionamento do catálogo.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

@@ -1,0 +1,24 @@
+{
+  "name": "NT Eleganz",
+  "short_name": "NT Eleganz",
+  "description": "Grifes originais e autenticadas. Moncler, Polo Ralph Lauren, All Saints, Birkenstock, Sundek, Vilebrequin e mais.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#c9a84c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/images/logonz-400.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/logonz-800.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

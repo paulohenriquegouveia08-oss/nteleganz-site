@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <base href="/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="page-title">Produto | NT Eleganz</title>
+  <meta name="description" id="page-desc" content="Compre grifes originais na NT Eleganz. Pedido via WhatsApp." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <link rel="canonical" href="/products/" />
+  <meta property="og:type" content="product" />
+  <meta property="og:site_name" content="NT Eleganz" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:title" content="Produto | NT Eleganz" />
+  <meta property="og:description" content="Compre grifes originais na NT Eleganz. Pedido via WhatsApp." />
+  <meta property="og:url" content="/products/" />
+  <meta property="og:image" content="/assets/images/banner.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Produto | NT Eleganz" />
+  <meta name="twitter:description" content="Compre grifes originais na NT Eleganz. Pedido via WhatsApp." />
+  <link rel="icon" type="image/webp" href="assets/images/logonz.webp?v=20260930" />
+  <link rel="apple-touch-icon" href="assets/images/logonz-400.webp" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="twitter:image" content="/assets/images/banner.webp" />
+  <script id="product-schema" type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"Produto NT Eleganz","description":"Compre grifes originais na NT Eleganz.","brand":{"@type":"Brand","name":"NT Eleganz"},"offers":{"@type":"Offer","url":"/products/","priceCurrency":"BRL","availability":"https://schema.org/InStock"}}</script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Swiper -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <link rel="stylesheet" href="css/components.css?v=20260930" />
+  <link rel="stylesheet" href="css/main.css" />
+
+  <style>
+    /* Product page — editorial product detail */
+    .product-page { padding: 2rem 0 5rem; background: var(--white); }
+    .product-page .container { max-width: 1320px; }
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      letter-spacing: var(--tracking-wider);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .breadcrumb a {
+      transition: color var(--transition-fast);
+    }
+    .breadcrumb a:hover { color: var(--gold); }
+    .breadcrumb-sep { color: var(--border-strong); }
+
+    .related-section {
+      padding: 5rem var(--gutter);
+      background: var(--white);
+      border-top: 1px solid var(--border);
+    }
+    .product-layout { grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: clamp(2rem, 5vw, 5rem); }
+    .product-gallery { top: calc(var(--nav-height) + 1rem); }
+    .gallery-main-swiper { border-radius: 10px; background: #eeeeee; }
+    .gallery-main-swiper img { object-fit: contain; padding: clamp(1.5rem, 5vw, 4rem); mix-blend-mode: multiply; }
+    .gallery-thumbs .swiper-slide { border-radius: 6px; opacity: .72; }
+    .product-info { gap: 1.35rem; padding-top: .35rem; }
+    .product-brand-tag { color: var(--text-muted); }
+    .product-name { font-family: var(--font-sans); font-size: clamp(1.65rem, 2.5vw, 2.2rem); font-weight: 400; letter-spacing: -.03em; }
+    .product-price-block { border: 0; padding: 0; gap: .8rem; }
+    .product-price-main { font-size: 1.45rem; font-weight: 400; }
+    .stock-line, .product-accordion summary { font-size: .65rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
+    .stock-line { color: #4da96a; letter-spacing: .04em; text-transform: none; font-size: .82rem; display: flex; gap: .5rem; align-items: center; }
+    .stock-line.stock-line--out { color: #b44b4b; }
+    .stock-line.stock-line--low { color: #b8860b; }
+    .stock-line::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .selector-label { font-size: .64rem; }
+    .size-btn { width: 4.2rem; height: 2.45rem; font-size: .78rem; }
+    .color-btn { width: 2rem; height: 2rem; }
+    .quantity-controls { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; }
+    .qty-btn { width: 2.6rem; height: 2.6rem; background: none; border: 0; font-size: 1.15rem; line-height: 1; color: var(--text-primary); cursor: pointer; display: grid; place-items: center; transition: opacity var(--transition-fast); }
+    .qty-btn:disabled { opacity: .3; cursor: not-allowed; }
+    .qty-display { min-width: 2.6rem; text-align: center; font-size: .95rem; letter-spacing: .05em; }
+    .product-actions { display: block; }
+    #buy-whatsapp-btn { display: none; }
+    .product-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 1.4rem 0; border-top: 0; border-bottom: 1px solid var(--border); }
+    .product-meta-item { justify-content: center; flex-direction: column; text-align: center; gap: .45rem; font-size: .82rem; }
+    .product-meta-item:nth-child(n+3) { display: none; }
+    .product-accordions { border-top: 1px solid var(--border); }
+    .product-accordion { border-bottom: 1px solid var(--border); }
+    .product-accordion summary { list-style: none; cursor: pointer; padding: 1.2rem 0; display: flex; justify-content: space-between; align-items: center; }
+    .product-accordion summary::-webkit-details-marker { display: none; }
+    .product-accordion summary::after { content: '+'; font-size: 1.3rem; font-weight: 300; color: var(--text-muted); }
+    .product-accordion[open] summary::after { content: '−'; }
+    .product-accordion p { margin: 0 0 1.2rem; color: var(--text-secondary); font-size: .88rem; line-height: 1.65; }
+    .related-section .container { max-width: 1320px; }
+    .related-box { background: #0a0a0a; border-radius: 24px; padding: clamp(2rem, 5vw, 3.5rem); box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+    .related-section .section-header { text-align: center; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .related-header { opacity: 1 !important; transform: none !important; }
+    .related-section .section-label { color: rgba(255,255,255,.5); }
+    .related-section .section-title { font-family: var(--font-sans); font-weight: 400; font-size: clamp(1.8rem, 4vw, 3rem); color: var(--white); }
+    .related-section .products-grid { grid-template-columns: repeat(4, 1fr); gap: 1.25rem; background: transparent; }
+    .related-section .product-card { background: #161616; border: 1px solid rgba(255,255,255,.07); border-radius: 16px; box-shadow: none; }
+    .related-section .product-card__image-wrap { border-radius: 15px 15px 0 0; background: #f0ede7; }
+    .related-section .product-card__image-wrap img { object-fit: contain; mix-blend-mode: multiply; padding: 1rem; }
+    .related-section .product-card__info { background: #161616; border-top: 1px solid rgba(255,255,255,.06); }
+    .related-section .product-card__brand { color: rgba(255,255,255,.5); }
+    .related-section .product-card__name, .related-section .product-card__price { color: var(--white); }
+    .related-section .product-card__price--old { color: rgba(255,255,255,.35); }
+    @media (max-width: 1024px) { .product-layout { grid-template-columns: 1fr; } .product-gallery { position: static; } }
+    @media (max-width: 700px) { .product-page { padding-top: 1rem; } .product-meta, .related-section .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .related-section { padding: 3rem var(--gutter); } .related-box { border-radius: 16px; } }
+    @media (max-width: 420px) { .breadcrumb { overflow: hidden; white-space: nowrap; } .product-name { font-size: 1.55rem; } .gallery-main-swiper { border-radius: 7px; } .gallery-main-swiper img { padding: 1rem; } .size-btn { width: 3.65rem; } .related-section .products-grid { gap: .7rem; } .related-box { padding: 1.15rem; } }
+  </style>
+  <link rel="stylesheet" href="css/mysupplies.css?v=20260930" />
+<script src="/js/image-compat.js" defer></script>
+</head>
+<body>
+
+<!-- ── Page Loader ── -->
+<div id="page-loader" class="page-loader">
+  <div class="loader-inner">
+    <div class="loader-logo">NT ELEGANZ</div>
+    <div class="loader-bar"></div>
+  </div>
+</div>
+<script>
+  (function () {
+    var hide = function () {
+      var loader = document.getElementById('page-loader');
+      if (!loader) return;
+      loader.classList.add('hidden');
+      setTimeout(function () { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 300);
+    };
+    window.addEventListener('load', hide, { once: true });
+    setTimeout(hide, 4000);
+  })();
+</script>
+
+<!-- ── Overlay Backdrop ── -->
+<div id="overlay-backdrop" class="overlay-backdrop"></div>
+
+<!-- ── Search Bar ── -->
+<div id="search-bar" class="search-bar">
+  <div class="search-inner">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" color="var(--text-muted)">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search-input" type="text" class="search-input" placeholder="Buscar produtos, marcas..." autocomplete="off" />
+    <button id="search-close" class="search-close" aria-label="Fechar busca">×</button>
+  </div>
+</div>
+
+<!-- ── Menu Drawer (Left) ── -->
+<nav id="menu-drawer" class="drawer drawer--left menu-drawer" aria-label="Menu de navegação">
+  <div class="drawer-header">
+    <span class="drawer-title">Menu</span>
+    <button id="menu-close-btn" class="drawer-close" aria-label="Fechar menu">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <ul class="menu-nav-list">
+      <li class="menu-nav-item"><a href="/collections/">Todos os produtos <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></li>
+      <li class="menu-nav-item"><a href="/collections/calcados/">Calçados <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></li>
+      <li class="menu-nav-item"><a href="/collections/camisetas/">Camisetas <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></li>
+      <li class="menu-nav-item"><a href="/collections/hoodies/">Hoodies <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></li>
+      <li class="menu-nav-item"><a href="/collections/shorts/">Shorts <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Cart Drawer (Right) ── -->
+<aside id="cart-drawer" class="drawer drawer--right" aria-label="Carrinho de compras">
+  <div class="drawer-header">
+    <span class="drawer-title">Carrinho</span>
+    <button id="cart-close-btn" class="drawer-close" aria-label="Fechar carrinho">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div id="cart-empty" class="cart-empty" style="display: flex;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      <p>Seu carrinho está vazio</p>
+    </div>
+    <div id="cart-items-list"></div>
+  </div>
+  <div class="drawer-footer">
+    <div class="cart-summary-row">
+      <span class="cart-total-label">Total</span>
+      <span id="cart-total" class="cart-total-value">R$ 0,00</span>
+    </div>
+    <button id="cart-checkout-btn" class="btn btn-whatsapp" disabled>
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px;">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+      </svg>
+      Finalizar pedido no WhatsApp
+    </button>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════
+     ANNOUNCEMENT BAR
+══════════════════════════════════════════ -->
+<div class="announcement-bar">
+  <div class="announcement-track">
+    <span class="announcement-item">ONLY ORIGINAL PRODUCTS</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════ -->
+<header class="site-header" role="banner">
+  <div class="header-inner">
+    <div class="header-left">
+      <button id="hamburger-btn" class="hamburger" aria-label="Abrir menu">
+        <span></span><span></span><span></span>
+      </button>
+      <button id="search-btn" class="header-icon-btn" aria-label="Buscar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+    </div>
+    <div class="header-center">
+      <a href="/" class="site-logo" aria-label="NT Eleganz - Página inicial">
+        <img src="assets/images/logonz-400.webp" width="1983" height="793" alt="NT Eleganz" class="logo-img" />
+      </a>
+    </div>
+    <div class="header-right">
+      <a href="#" class="header-icon-btn header-icon-btn--whatsapp" onclick="window.ntWpp?.openGreeting(); return false;" aria-label="WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+        </svg>
+      </a>
+      <button id="cart-open-btn" class="header-icon-btn" aria-label="Carrinho" style="position: relative;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" x2="21" y1="6" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span id="cart-badge" class="cart-badge">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     PRODUCT PAGE CONTENT
+══════════════════════════════════════════ -->
+<main class="product-page">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Navegação de caminho">
+      <a href="/">Início</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="/collections/">Collections</a>
+      <span class="breadcrumb-sep">›</span>
+      <span id="breadcrumb-product">Produto</span>
+    </nav>
+
+    <!-- Product Layout -->
+    <div class="product-layout">
+
+      <!-- Gallery -->
+      <div class="product-gallery">
+        <div class="swiper gallery-main-swiper" id="gallery-main">
+          <div class="swiper-wrapper" id="gallery-slides">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+        <div class="swiper gallery-thumbs" id="gallery-thumbs" style="margin-top: var(--space-3);">
+          <div class="swiper-wrapper" id="thumb-slides">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info" id="product-info">
+        <span class="product-brand-tag" id="product-brand">—</span>
+        <h1 class="product-name" id="product-name">Carregando...</h1>
+
+        <div class="product-price-block">
+          <span class="product-price-main" id="product-price">—</span>
+          <span class="product-price-old" id="product-old-price" style="display:none;"></span>
+          <span class="product-price-badge" id="product-badge" style="display:none;"></span>
+        </div>
+
+        <div class="stock-line" id="stock-line" aria-live="polite">Verificando estoque...</div>
+
+        <!-- Size -->
+        <div class="size-selector">
+          <div class="selector-label">Tamanho</div>
+          <div class="size-options" id="size-options">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Color -->
+        <div class="color-selector">
+          <div class="selector-label">Cor</div>
+          <div class="color-options" id="color-options">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Quantity -->
+        <!-- Description -->
+        <p class="product-desc" id="product-desc"></p>
+
+        <!-- Actions -->
+        <div class="product-actions">
+          <button id="add-to-cart-btn" class="btn btn-outline btn-lg">
+            Adicionar ao Carrinho
+          </button>
+          <button id="buy-whatsapp-btn" class="btn btn-whatsapp btn-lg">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+            </svg>
+            Pedir pelo WhatsApp
+          </button>
+        </div>
+
+        <!-- Meta -->
+        <div class="product-meta">
+          <div class="product-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Peça 100% original e autenticada</span>
+          </div>
+          <div class="product-meta-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span>Atendimento exclusivo via WhatsApp</span>
+          </div>
+        </div>
+
+        <div class="product-accordions">
+          <details class="product-accordion" open>
+            <summary>Descrição &amp; detalhes</summary>
+            <p id="product-details">Produto original, selecionado e autenticado pela NT Eleganz.</p>
+          </details>
+          <details class="product-accordion">
+            <summary>Modelagem</summary>
+            <p>Consulte a disponibilidade de tamanhos acima. Para uma consultoria personalizada sobre o caimento ideal, entre em
+            contato com nosso atendimento.</p>
+          </details>
+          <details class="product-accordion">
+            <summary>Envio &amp; cuidados</summary>
+            <p>Seu pedido é enviado em até 3 dias úteis após a confirmação. Cada peça recebe embalagem cuidadosa e acompanha o
+            certificado exclusivo de autenticidade <strong>NTELEGANZ.</strong></p>
+          </details>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════════════════════════════════════
+     RELATED PRODUCTS
+══════════════════════════════════════════ -->
+<section class="related-section" aria-label="Produtos relacionados">
+  <div class="container">
+    <div class="related-box">
+      <div class="section-header related-header">
+        <div class="section-label">Você também pode gostar</div>
+        <h2 class="section-title">Produtos Relacionados</h2>
+      </div>
+      <div id="related-grid" class="products-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WhatsApp Float Button ── -->
+<a id="whatsapp-float" href="#" class="whatsapp-float" aria-label="Conversar no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+  </svg>
+</a>
+
+<!-- ── Scripts ── -->
+<script defer src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script src="js/whatsapp.js?v=20260930"></script>
+<script src="js/cart.js?v=20260930"></script>
+<script src="js/menu.js?v=20260930"></script>
+<script src="js/db.js?v=20260930"></script>
+<script src="js/main.js?v=20260930"></script>
+
+<script>
+/* ── Product Page Logic ── */
+(function () {
+  'use strict';
+
+  let currentProduct = null;
+  let selectedSize = null;
+  let selectedColor = null;
+  let selectedQty = 1;
+
+  const LAST_PIECES_THRESHOLD = 7;
+
+  function getProductSlug() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }
+
+  function COLOR_MAP(hex) {
+    const names = {
+      '#1a3a5c': 'Navy',
+      '#000000': 'Preto',
+      '#8b2020': 'Bordô',
+      '#1c2b3a': 'Azul Escuro',
+      '#3a1c1c': 'Vinho',
+      '#8b6b3d': 'Tabaco',
+      '#d4c4a8': 'Areia',
+      '#1a7a8a': 'Turquesa',
+      '#1a3a8a': 'Azul Royal',
+      '#ffffff': 'Branco',
+      '#3d2b1f': 'Marrom',
+      '#1a5c3a': 'Verde',
+    };
+    return names[hex] || hex;
+  }
+
+  function escapeAttr(value) {
+    return String(value || '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]);
+  }
+
+  function updateProductSeo(product) {
+    const title = `${product.brand} — ${product.name} | NT Eleganz`;
+    const description = product.desc || `${product.name}, da ${product.brand}. Produto original e autenticado pela NT Eleganz, com atendimento via WhatsApp.`;
+    const image = product.image || product.images?.[0] || '/assets/images/banner.webp';
+    const canonical = `${window.location.origin}/products/?id=${encodeURIComponent(product.id)}`;
+    const setMeta = (selector, attribute, value) => {
+      const element = document.querySelector(selector);
+      if (element) element.setAttribute(attribute, value);
+    };
+    document.title = title;
+    document.getElementById('page-desc')?.setAttribute('content', description);
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonical);
+    setMeta('meta[property="og:title"]', 'content', title);
+    setMeta('meta[property="og:description"]', 'content', description);
+    setMeta('meta[property="og:url"]', 'content', canonical);
+    setMeta('meta[property="og:image"]', 'content', new URL(image, window.location.origin).href);
+    setMeta('meta[name="twitter:title"]', 'content', title);
+    setMeta('meta[name="twitter:description"]', 'content', description);
+    setMeta('meta[name="twitter:image"]', 'content', new URL(image, window.location.origin).href);
+
+    const price = String(product.price || '').replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.');
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description,
+      image: new URL(image, window.location.origin).href,
+      brand: { '@type': 'Brand', name: product.brand },
+      offers: {
+        '@type': 'Offer',
+        url: canonical,
+        priceCurrency: 'BRL',
+        price: Number.parseFloat(price) || 0,
+        availability: product.active === false || product.available === false
+          ? 'https://schema.org/OutOfStock'
+          : 'https://schema.org/InStock',
+      },
+    };
+    const schemaElement = document.getElementById('product-schema');
+    if (schemaElement) schemaElement.textContent = JSON.stringify(schema).replace(/</g, '\\u003c');
+  }
+
+  function renderGallery(product) {
+    const slides = document.getElementById('gallery-slides');
+    const thumbs = document.getElementById('thumb-slides');
+    if (!slides || !thumbs) return;
+
+    const images = [...new Set((Array.isArray(product.images) && product.images.length
+      ? product.images
+      : [product.image]).filter(Boolean))];
+    document.getElementById('gallery-thumbs').hidden = images.length < 2;
+
+    slides.innerHTML = images.map((img, i) => `
+      <div class="swiper-slide">
+        <img src="${escapeAttr(img)}" alt="${escapeAttr(product.name)} — foto ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" />
+      </div>
+    `).join('');
+
+    thumbs.innerHTML = images.map((img, i) => `
+      <div class="swiper-slide">
+        <img src="${escapeAttr(img)}" alt="${escapeAttr(product.name)} — foto ${i + 1}" loading="lazy" decoding="async" />
+      </div>
+    `).join('');
+
+    // Init Swiper
+    const thumbSwiper = new Swiper('#gallery-thumbs', {
+      slidesPerView: Math.min(4, Math.max(1, images.length)),
+      spaceBetween: 8,
+      watchSlidesProgress: true,
+    });
+
+    new Swiper('#gallery-main', {
+      spaceBetween: 0,
+      thumbs: { swiper: thumbSwiper },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+    });
+  }
+
+  function renderProductInfo(product) {
+    // Update page meta
+    document.getElementById('page-title').textContent = `${product.brand} — ${product.name} | NT Eleganz`;
+    document.getElementById('breadcrumb-product').textContent = product.name;
+
+    // Fill info
+    document.getElementById('product-brand').textContent = product.brand;
+    document.getElementById('product-name').textContent = product.name;
+    document.getElementById('product-price').textContent = product.price;
+    document.getElementById('product-desc').textContent = product.desc || '';
+    document.getElementById('product-details').textContent = product.desc || 'Produto original, selecionado e autenticado pela NT Eleganz.';
+    const stockLine = document.getElementById('stock-line');
+    const stock = Number(product.stock);
+    const available = product.active !== false && product.available !== false && Number.isFinite(stock) && stock > 0;
+    if (stockLine) {
+      stockLine.classList.toggle('stock-line--out', !available);
+      stockLine.classList.toggle('stock-line--low', available && stock <= LAST_PIECES_THRESHOLD);
+      stockLine.textContent = !available ? 'Esgotado' : stock > LAST_PIECES_THRESHOLD ? 'Em estoque' : 'Últimas peças';
+    }
+    selectedQty = 1;
+    const addToCartButton = document.getElementById('add-to-cart-btn');
+    if (addToCartButton) {
+      addToCartButton.disabled = !available;
+      addToCartButton.textContent = available ? 'Adicionar ao Carrinho' : 'Produto esgotado';
+    }
+
+    const oldPriceEl = document.getElementById('product-old-price');
+    if (product.oldPrice) {
+      oldPriceEl.textContent = product.oldPrice;
+      oldPriceEl.style.display = '';
+    }
+
+    const badgeEl = document.getElementById('product-badge');
+    if (product.badge) {
+      badgeEl.textContent = product.badge;
+      badgeEl.style.display = '';
+    }
+
+    // Sizes
+    const sizeContainer = document.getElementById('size-options');
+    if (sizeContainer) {
+      const sizes = product.sizes?.length ? product.sizes : ['Único'];
+      sizeContainer.innerHTML = sizes.map((s, i) => {
+        const safe = escapeAttr(s);
+        return `
+        <button class="size-btn${i === 0 ? ' active' : ''}" data-size="${safe}" onclick="selectSize('${safe}', this)">${safe}</button>
+      `;
+      }).join('');
+      selectedSize = sizes[0];
+    }
+
+    // Colors
+    const colorContainer = document.getElementById('color-options');
+    if (colorContainer) {
+      const colors = product.colors?.length ? product.colors : ['#000000'];
+      colorContainer.innerHTML = colors.map((c, i) => {
+        const safe = escapeAttr(c);
+        const colorName = escapeAttr(COLOR_MAP(c));
+        return `
+        <button class="color-btn${i === 0 ? ' active' : ''}" data-color="${safe}" style="background:${safe};" title="${colorName}" onclick="selectColor('${safe}', this)" aria-label="Cor ${colorName}"></button>
+      `;
+      }).join('');
+      selectedColor = COLOR_MAP(colors[0]);
+    }
+  }
+
+  function renderRelated(currentId) {
+    const grid = document.getElementById('related-grid');
+    if (!grid || !window.NT_PRODUCTS) return;
+
+    const related = window.NT_PRODUCTS.filter(p => p.id !== currentId).slice(0, 4);
+    const cutoutImages = {
+      'allsaints-001': 'assets/images/product-allsaints-cutout.webp',
+      'birkenstock-001': 'assets/images/product-birkenstock-cutout.webp',
+      'moncler-001': 'assets/images/product-moncler-cutout.webp',
+      'polo-001': 'assets/images/product-polo-cutout.webp',
+      'sundek-001': 'assets/images/product-sundek-cutout.webp',
+      'villebrequin-001': 'assets/images/product-sundek-cutout.webp',
+    };
+    grid.innerHTML = related.map(p => {
+      const relatedImg = cutoutImages[p.id] || p.image;
+      const relatedImgSrcset = cutoutImages[p.id]
+        ? ` srcset="${escapeAttr(cutoutImages[p.id].replace(/\.webp$/, '-400.webp'))} 1x, ${escapeAttr(cutoutImages[p.id].replace(/\.webp$/, '-800.webp'))} 2x"`
+        : '';
+      const brand = escapeAttr(p.brand || '');
+      const name = escapeAttr(p.name || '');
+      return `
+      <div class="product-card" onclick="window.location='/products/?id=${escapeAttr(p.id)}'" style="cursor:pointer;">
+        <div class="product-card__image-wrap">
+          <img src="${escapeAttr(relatedImg)}"${relatedImgSrcset} alt="${brand} ${name}" loading="lazy" decoding="async">
+          ${p.badge ? `<span class="product-card__badge">${escapeAttr(p.badge)}</span>` : ''}
+        </div>
+        <div class="product-card__info">
+          <span class="product-card__brand">${brand}</span>
+          <h3 class="product-card__name">${name}</h3>
+          <div class="product-card__price-row">
+            <span class="product-card__price">${escapeAttr(p.price)}</span>
+            ${p.oldPrice ? `<span class="product-card__price--old">${escapeAttr(p.oldPrice)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    }).join('');
+  }
+
+  // Global helpers
+  window.selectSize = function (size, el) {
+    selectedSize = size;
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  };
+
+  window.selectColor = function (hex, el) {
+    const COLOR_NAMES = {
+      '#1a3a5c': 'Navy', '#000000': 'Preto', '#8b2020': 'Bordô',
+      '#1c2b3a': 'Azul Escuro', '#3a1c1c': 'Vinho', '#8b6b3d': 'Tabaco',
+      '#d4c4a8': 'Areia', '#1a7a8a': 'Turquesa', '#1a3a8a': 'Azul Royal',
+      '#ffffff': 'Branco', '#3d2b1f': 'Marrom', '#1a5c3a': 'Verde',
+    };
+    selectedColor = COLOR_NAMES[hex] || hex;
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+  };
+
+  function renderProduct(product) {
+    currentProduct = product;
+    updateProductSeo(product);
+
+    renderProductInfo(product);
+    renderGallery(product);
+    renderRelated(product.id);
+
+    const addBtn = document.getElementById('add-to-cart-btn');
+    const buyBtn = document.getElementById('buy-whatsapp-btn');
+
+    // Os botões são recriados por renderProductInfo, então o listener é
+    // reanexado a cada render. O anterior morre junto com o elemento antigo.
+    if (addBtn) {
+      addBtn.onclick = () => {
+        window.ntCart?.add({ ...currentProduct, size: selectedSize, color: selectedColor, qty: selectedQty });
+      };
+    }
+    if (buyBtn) {
+      buyBtn.onclick = () => {
+        window.ntWpp?.orderProduct(currentProduct, selectedSize, selectedColor, selectedQty);
+      };
+    }
+  }
+
+  function showUnavailable() {
+    document.title = 'Produto indisponível | NT Eleganz';
+    const shell = document.querySelector('.product-page') || document.querySelector('main');
+    if (shell) shell.innerHTML = `
+      <section class="product-unavailable" style="min-height:65vh;display:grid;place-items:center;padding:120px 24px 64px;text-align:center;background:#f7f7f5">
+        <div style="max-width:520px">
+          <span style="font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#777">Catálogo atualizado</span>
+          <h1 style="font:500 clamp(32px,6vw,58px)/1.05 Georgia,serif;margin:18px 0 14px">Este produto não está mais disponível.</h1>
+          <p style="color:#666;line-height:1.7;margin-bottom:28px">Ele pode ter sido removido ou desativado. Veja as peças que continuam no catálogo.</p>
+          <a href="/collections/" style="display:inline-flex;padding:14px 22px;background:#111;color:#fff;text-decoration:none;border-radius:999px">Ver collections</a>
+        </div>
+      </section>`;
+  }
+
+  function initProductPage() {
+    const productId = getProductSlug();
+
+    // Busca direto na API. Um produto criado no painel precisa abrir na PDP
+    // mesmo com um snapshot velho em cache — antes a página dependia só do
+    // global NT_PRODUCTS e caía em "indisponível".
+    async function loadProduct(options = {}) {
+      if (!productId) return;
+      let products = null;
+
+      try {
+        if (window.ntDB) {
+          products = await window.ntDB.products.getAll(options);
+        }
+      } catch (error) {
+        console.warn('Falha ao carregar o produto:', error);
+      }
+
+      if (!Array.isArray(products)) products = window.NT_PRODUCTS;
+      if (!Array.isArray(products)) return;
+
+      if (!products.some(p => p.id === productId)) {
+        window.NT_PRODUCTS = products;
+        showUnavailable();
+        return;
+      }
+      window.NT_PRODUCTS = products;
+      const product = products.find(p => p.id === productId);
+      renderProduct(product);
+    }
+
+    // Espera main.js publicar o catálogo; se não vier, busca direto.
+    function tryLoad(attempts = 0) {
+      if (window.NT_PRODUCTS) {
+        loadProduct();
+        return;
+      }
+      if (attempts < 20) {
+        setTimeout(() => tryLoad(attempts + 1), 100);
+        return;
+      }
+      loadProduct();
+    }
+
+    tryLoad();
+
+    // Re-render em vez de recarregar: um reload em toda alteração de catálogo
+    // descartava a seleção de tamanho/cor e a posição de rolagem.
+    let reloadTimer = null;
+    const scheduleRerender = () => {
+      clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => {
+        // Sem `reload`: o evento só é disparado quando o conteúdo mudou, e o
+        // produto novo já está no cache de memória. `loadProduct()` lê dali.
+        loadProduct().then(() => {
+          const product = (window.NT_PRODUCTS || []).find(p => p.id === productId);
+          if (product) renderProduct(product);
+        });
+      }, 300);
+    };
+
+    window.addEventListener('storage', event => {
+      if (event.key === 'nte_hydrated_products' || event.key === 'nte_products') scheduleRerender();
+    });
+    window.addEventListener('nte:products-changed', scheduleRerender);
+    // Revalidação por ETag: 304 sem corpo quando nada mudou. Com `reload: true`
+    // esta página baixava o catálogo inteiro a cada 20s e re-renderizava o
+    // produto, jogando fora o tamanho/cor que o cliente tinha escolhido.
+    const revalidateCatalog = () => { window.ntDB?.refresh?.('products'); };
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) revalidateCatalog();
+    });
+    window.setInterval(() => {
+      if (!document.hidden) revalidateCatalog();
+    }, 20000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initProductPage();
+
+    // Scroll reveal fallback
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('[data-reveal]').forEach(el => observer.observe(el));
+
+    // WhatsApp float
+    const floatBtn = document.getElementById('whatsapp-float');
+    if (floatBtn) floatBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.ntWpp?.openGreeting();
+    });
+  });
+
+})();
+</script>
+
+</body>
+</html>
+

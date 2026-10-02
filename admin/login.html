@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | NT Eleganz</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/webp" href="../assets/images/logonz.webp?v=20260930" />
+  <link rel="apple-touch-icon" href="../assets/images/logonz-400.webp" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="../css/admin.css" />
+<script src="/js/image-compat.js" defer></script>
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="../assets/images/logonz.webp" alt="NT Eleganz" class="login-logo-img" />
+    </div>
+    <div class="login-subtitle">Painel Administrativo</div>
+
+    <div id="login-error" class="login-error"></div>
+
+    <form class="login-form" id="login-form" autocomplete="off">
+      <div class="form-field">
+        <label class="form-label" for="username">E-mail</label>
+        <input
+          id="username"
+          type="text"
+          class="form-input"
+          type="email"
+          placeholder="admin@exemplo.com"
+          autocomplete="username"
+          required
+        />
+      </div>
+
+      <div class="form-field">
+        <label class="form-label" for="password">Senha</label>
+        <div class="form-input-wrap">
+          <input
+            id="password"
+            type="password"
+            class="form-input"
+            placeholder="••••••"
+            autocomplete="current-password"
+            required
+          />
+          <span class="form-input-icon" id="toggle-password" title="Mostrar senha">
+            <svg id="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="login-btn">
+        <span id="login-btn-text">Entrar</span>
+      </button>
+    </form>
+
+    <a href="/" class="login-back">← Voltar ao site</a>
+  </div>
+</div>
+
+<script src="../js/auth.js?v=20260930"></script>
+<script>
+(function () {
+  const form = document.getElementById('login-form');
+  const errorEl = document.getElementById('login-error');
+  const loginBtn = document.getElementById('login-btn');
+  const loginBtnText = document.getElementById('login-btn-text');
+  const togglePass = document.getElementById('toggle-password');
+  const passInput = document.getElementById('password');
+
+  Promise.resolve(window.ntAuth?.isAuthenticated?.()).then(authenticated => {
+    if (authenticated) window.location.href = 'index.html';
+  });
+
+  // Toggle password visibility
+  togglePass.addEventListener('click', () => {
+    const isPass = passInput.type === 'password';
+    passInput.type = isPass ? 'text' : 'password';
+    document.getElementById('eye-icon').innerHTML = isPass
+      ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
+      : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+  });
+
+  // Form submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    loginBtn.disabled = true;
+    loginBtnText.textContent = 'Verificando...';
+    errorEl.classList.remove('visible');
+
+    const result = await window.ntAuth.login(username, password);
+
+    if (result.success) {
+      loginBtnText.textContent = 'Redirecionando...';
+      setTimeout(() => { window.location.href = 'index.html'; }, 300);
+    } else {
+      errorEl.textContent = result.error;
+      errorEl.classList.add('visible');
+      loginBtn.disabled = false;
+      loginBtnText.textContent = 'Entrar';
+      // Shake animation
+      form.style.animation = 'none';
+      setTimeout(() => { form.style.animation = ''; }, 10);
+    }
+  });
+})();
+</script>
+</body>
+</html>
