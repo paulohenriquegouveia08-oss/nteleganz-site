@@ -138,6 +138,44 @@ if ($method === 'GET' || $method === 'HEAD') {
                 'products' => $vps['products']
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
+            // Auto-cura de fotos: se alguma imagem estiver ausente na Hostinger, recupera da VPS em segundo plano
+            $localImgDir = __DIR__ . '/../assets/images/products/';
+            if (is_dir($localImgDir)) {
+                $syncLimit = 4;
+                foreach ($vps['products'] as $vp) {
+                    if ($syncLimit <= 0) break;
+                    $imgsToCheck = [];
+                    if (!empty($vp['image'])) $imgsToCheck[] = $vp['image'];
+                    if (!empty($vp['images']) && is_array($vp['images'])) {
+                        foreach ($vp['images'] as $vi) { if ($vi) $imgsToCheck[] = $vi; }
+                    }
+                    foreach ($imgsToCheck as $imgUrl) {
+                        if ($syncLimit <= 0) break;
+                        $fn = basename(parse_url($imgUrl, PHP_URL_PATH));
+                        if ($fn && preg_match('/^[a-zA-Z0-9_-]+\.webp$/', $fn)) {
+                            $target = $localImgDir . $fn;
+                            if (!file_exists($target) || filesize($target) === 0) {
+                                $vpsImgUrl = 'https://137-131-233-254.sslip.io/nteleganz/uploads/' . $fn;
+                                $chImg = curl_init($vpsImgUrl);
+                                curl_setopt_array($chImg, [
+                                    CURLOPT_RETURNTRANSFER => true,
+                                    CURLOPT_TIMEOUT => 2,
+                                    CURLOPT_SSL_VERIFYPEER => false,
+                                    CURLOPT_SSL_VERIFYHOST => 0
+                                ]);
+                                $blob = curl_exec($chImg);
+                                $cCode = curl_getinfo($chImg, CURLINFO_HTTP_CODE);
+                                curl_close($chImg);
+                                if ($blob !== false && $cCode === 200 && strlen($blob) > 500) {
+                                    @file_put_contents($target, $blob);
+                                    $syncLimit--;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             respond(200, null, ['products' => $vps['products'], 'version' => $version]);
         }
     }

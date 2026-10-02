@@ -182,7 +182,7 @@
     return `
       <a class="product-card" href="${productUrl}" data-product-id="${escHtml(product.id)}" aria-label="Ver ${name}">
         <div class="product-card__image-wrap">
-          <img src="${image}"${respSrcset(product.image)} alt="${brand} ${name}" loading="lazy" decoding="async">
+          <img src="${image}"${respSrcset(product.image)} alt="${brand} ${name}" loading="lazy" decoding="async" onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}">
           ${product.badge ? `<span class="product-card__badge">${escHtml(product.badge)}</span>` : ''}
         </div>
         <div class="product-card__info">

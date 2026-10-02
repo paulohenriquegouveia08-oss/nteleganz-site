@@ -243,7 +243,7 @@
     return `
       <article class="catalog-card" role="listitem" data-product-id="${esc(p.id)}">
         <a href="${productUrl}" class="catalog-card__img-wrap" aria-label="Ver ${name}">
-          <img src="${esc(p.image)}"${cardSrcset(p.image)} alt="${brand} — ${name}" loading="lazy" decoding="async" />
+          <img src="${esc(p.image)}"${cardSrcset(p.image)} alt="${brand} — ${name}" loading="lazy" decoding="async" onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
           ${p.badge ? `<span class="catalog-card__badge ${badgeClass}">${esc(p.badge)}</span>` : ''}
           <button class="catalog-card__quick-add" onclick="event.preventDefault();event.stopPropagation();catalogAddToCart('${esc(p.id)}')">
             Adicionar ao Carrinho

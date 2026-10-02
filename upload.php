@@ -116,6 +116,26 @@ if (!$saved) {
     respond(500, 'Falha ao salvar imagem como WebP');
 }
 
+// Redundância Dupla: envia cópia idêntica da foto para o armazenamento da VPS
+try {
+    $vpsUploadUrl = 'https://137-131-233-254.sslip.io/nteleganz/api/upload';
+    $chVps = curl_init($vpsUploadUrl);
+    $cfile = curl_file_create($filepath, 'image/webp', $filename);
+    curl_setopt_array($chVps, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => ['image' => $cfile],
+        CURLOPT_HTTPHEADER => ['x-filename: ' . $filename],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 4,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => 0
+    ]);
+    curl_exec($chVps);
+    curl_close($chVps);
+} catch (\Throwable $t) {
+    // Falha silenciosa para não travar o cliente caso a VPS esteja ocupada
+}
+
 // Retornar URL pública
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];

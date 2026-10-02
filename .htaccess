@@ -91,6 +91,11 @@ DirectoryIndex index.php index.html index.htm
     # Roteamento amigável para PDP dinâmica (OpenGraph e redes sociais)
     RewriteRule ^products/?$ products/index.php [L,QSA]
     RewriteRule ^foto/?$ foto/index.php [L,QSA]
+
+    # Fallback automático para fotos de produtos: se o arquivo não existir fisicamente na Hostinger,
+    # redireciona para a VPS (onde as fotos estão salvas e intactas)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^assets/images/products/([a-zA-Z0-9_.-]+\.webp)$ https://137-131-233-254.sslip.io/nteleganz/uploads/$1 [L,R=302]
 </IfModule>
 
 # Fallback para quem não tiver mod_rewrite: nega por caminho de diretório.
