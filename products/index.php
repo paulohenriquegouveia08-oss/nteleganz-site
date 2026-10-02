@@ -2,7 +2,7 @@
 // NT ELEGANZ — Product Social Metadata & OpenGraph Handler
 $productQuery = isset($_GET['p']) ? trim((string)$_GET['p']) : (isset($_GET['slug']) ? trim((string)$_GET['slug']) : (isset($_GET['id']) ? trim((string)$_GET['id']) : ''));
 
-$htmlPath = __DIR__ . '/index.html';
+$htmlPath = file_exists(__DIR__ . '/template.html') ? __DIR__ . '/template.html' : __DIR__ . '/index.html';
 if (!file_exists($htmlPath)) {
     http_response_code(404);
     exit('Página não encontrada.');
@@ -113,10 +113,26 @@ if ($productQuery !== '') {
 
         $cleanSlug = getProductCleanSlug($product, $allProducts);
         $canonical = 'https://nteleganz.com.br/products/?p=' . urlencode($cleanSlug);
-        $cleanPhoto = 'https://nteleganz.com.br/foto/?p=' . urlencode($cleanSlug);
 
-        $html = preg_replace('/<meta\s+property=["\']og:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta property="og:image" content="' . $cleanPhoto . '" />', $html, 1);
-        $html = preg_replace('/<meta\s+name=["\']twitter:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta name="twitter:image" content="' . $cleanPhoto . '" />', $html);
+        // Imagem direta do produto
+        $directImg = $product['image'] ?? ($product['images'][0] ?? '');
+        if ($directImg !== '') {
+            if (strpos($directImg, 'http://') !== 0 && strpos($directImg, 'https://') !== 0) {
+                $directImg = 'https://nteleganz.com.br/' . ltrim($directImg, '/');
+            }
+        } else {
+            $directImg = 'https://nteleganz.com.br/assets/images/banner.webp';
+        }
+        $imgEscaped = htmlspecialchars($directImg, ENT_QUOTES, 'UTF-8');
+
+        $ogTags = '<meta property="og:image" content="' . $imgEscaped . '" />' . "\n"
+                . '  <meta property="og:image:secure_url" content="' . $imgEscaped . '" />' . "\n"
+                . '  <meta property="og:image:type" content="image/webp" />' . "\n"
+                . '  <meta property="og:image:width" content="800" />' . "\n"
+                . '  <meta property="og:image:height" content="800" />';
+
+        $html = preg_replace('/<meta\s+property=["\']og:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', $ogTags, $html, 1);
+        $html = preg_replace('/<meta\s+name=["\']twitter:image["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta name="twitter:image" content="' . $imgEscaped . '" />', $html);
 
         $html = preg_replace('/<title[^>]*>.*?<\/title>/i', "<title id=\"page-title\">{$title}</title>", $html, 1);
         $html = preg_replace('/<meta\s+property=["\']og:title["\']\s+content=["\'][^"\']*["\']\s*\/?>/i', '<meta property="og:title" content="' . $title . '" />', $html, 1);

@@ -77,7 +77,8 @@ php_value memory_limit 256M
 </FilesMatch>
 
 # Disable directory listing
-Options -Indexes
+# Prioridade de execução: PHP antes de HTML estático
+DirectoryIndex index.php index.html index.htm
 
 # Catálogo e backups (data/) só podem ser lidos pela API. Sem este bloqueio,
 # qualquer pessoa baixaria products.json e veria/editaria o catálogo inteiro
@@ -86,6 +87,10 @@ Options -Indexes
     RewriteEngine On
     RewriteRule ^\.git(/|$) - [F,L]
     RewriteRule ^data(/|$) - [F,L]
+
+    # Roteamento amigável para PDP dinâmica (OpenGraph e redes sociais)
+    RewriteRule ^products/?$ products/index.php [L,QSA]
+    RewriteRule ^foto/?$ foto/index.php [L,QSA]
 </IfModule>
 
 # Fallback para quem não tiver mod_rewrite: nega por caminho de diretório.
