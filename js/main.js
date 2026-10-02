@@ -178,8 +178,9 @@
     const image = escHtml(product.image);
     const brand = escHtml(product.brand || '');
     const name = escHtml(product.name || '');
+    const productUrl = (window.ntWpp?.getProductUrl ? window.ntWpp.getProductUrl(product) : `/products/?id=${escHtml(product.id)}`);
     return `
-      <a class="product-card" href="/products/?id=${escHtml(product.id)}" data-product-id="${escHtml(product.id)}" aria-label="Ver ${name}">
+      <a class="product-card" href="${productUrl}" data-product-id="${escHtml(product.id)}" aria-label="Ver ${name}">
         <div class="product-card__image-wrap">
           <img src="${image}"${respSrcset(product.image)} alt="${brand} ${name}" loading="lazy" decoding="async">
           ${product.badge ? `<span class="product-card__badge">${escHtml(product.badge)}</span>` : ''}

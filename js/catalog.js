@@ -239,9 +239,10 @@
     const badgeClass = p.badge === 'OFERTA' ? 'catalog-card__badge--sale' : p.badge === 'LUXO' ? 'catalog-card__badge--new' : '';
     const brand = esc(p.brand || '');
     const name = esc(p.name || '');
+    const productUrl = (window.ntWpp?.getProductUrl ? window.ntWpp.getProductUrl(p) : `/products/?id=${esc(p.id)}`);
     return `
       <article class="catalog-card" role="listitem" data-product-id="${esc(p.id)}">
-        <a href="/products/?id=${esc(p.id)}" class="catalog-card__img-wrap" aria-label="Ver ${name}">
+        <a href="${productUrl}" class="catalog-card__img-wrap" aria-label="Ver ${name}">
           <img src="${esc(p.image)}"${cardSrcset(p.image)} alt="${brand} — ${name}" loading="lazy" decoding="async" />
           ${p.badge ? `<span class="catalog-card__badge ${badgeClass}">${esc(p.badge)}</span>` : ''}
           <button class="catalog-card__quick-add" onclick="event.preventDefault();event.stopPropagation();catalogAddToCart('${esc(p.id)}')">
@@ -250,7 +251,7 @@
         </a>
         <div class="catalog-card__info">
           <span class="catalog-card__brand">${brand}</span>
-          <a href="/products/?id=${esc(p.id)}" style="text-decoration:none;">
+          <a href="${productUrl}" style="text-decoration:none;">
             <span class="catalog-card__name">${name}</span>
           </a>
           <div class="catalog-card__price-row">

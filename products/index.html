@@ -417,9 +417,9 @@
 
   const LAST_PIECES_THRESHOLD = 7;
 
-  function getProductSlug() {
+  function getProductQuery() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('id');
+    return params.get('p') || params.get('slug') || params.get('id');
   }
 
   function COLOR_MAP(hex) {
@@ -448,7 +448,8 @@
     const title = `${product.brand} — ${product.name} | NT Eleganz`;
     const description = product.desc || `${product.name}, da ${product.brand}. Produto original e autenticado pela NT Eleganz, com atendimento via WhatsApp.`;
     const image = product.image || product.images?.[0] || '/assets/images/banner.webp';
-    const canonical = `${window.location.origin}/products/?id=${encodeURIComponent(product.id)}`;
+    const cleanSlug = window.ntWpp?.getCleanSlug ? window.ntWpp.getCleanSlug(product, window.NT_PRODUCTS) : (product.slug || product.id);
+    const canonical = `${window.location.origin}/products/?p=${encodeURIComponent(cleanSlug)}`;
     const setMeta = (selector, attribute, value) => {
       const element = document.querySelector(selector);
       if (element) element.setAttribute(attribute, value);
@@ -611,8 +612,9 @@
         : '';
       const brand = escapeAttr(p.brand || '');
       const name = escapeAttr(p.name || '');
+      const cardUrl = window.ntWpp?.getProductUrl ? window.ntWpp.getProductUrl(p) : `/products/?id=${escapeAttr(p.id)}`;
       return `
-      <div class="product-card" onclick="window.location='/products/?id=${escapeAttr(p.id)}'" style="cursor:pointer;">
+      <div class="product-card" onclick="window.location='${cardUrl}'" style="cursor:pointer;">
         <div class="product-card__image-wrap">
           <img src="${escapeAttr(relatedImg)}"${relatedImgSrcset} alt="${brand} ${name}" loading="lazy" decoding="async">
           ${p.badge ? `<span class="product-card__badge">${escapeAttr(p.badge)}</span>` : ''}
@@ -689,13 +691,34 @@
   }
 
   function initProductPage() {
-    const productId = getProductSlug();
+    const productQuery = getProductQuery();
+
+    function matchProduct(products, query) {
+      if (!query || !Array.isArray(products) || !products.length) return null;
+      const q = String(query).trim().toLowerCase();
+
+      // 1. Exact ID match (retrocompatibilidade para links antigos)
+      let found = products.find(p => String(p.id).toLowerCase() === q);
+      if (found) return found;
+
+      // 2. Clean slug match
+      if (window.ntWpp?.getCleanSlug) {
+        found = products.find(p => window.ntWpp.getCleanSlug(p, products) === q);
+        if (found) return found;
+      }
+
+      // 3. Raw slug match
+      found = products.find(p => String(p.slug || '').toLowerCase() === q);
+      if (found) return found;
+
+      return null;
+    }
 
     // Busca direto na API. Um produto criado no painel precisa abrir na PDP
     // mesmo com um snapshot velho em cache — antes a página dependia só do
     // global NT_PRODUCTS e caía em "indisponível".
     async function loadProduct(options = {}) {
-      if (!productId) return;
+      if (!productQuery) return;
       let products = null;
 
       try {
@@ -709,14 +732,25 @@
       if (!Array.isArray(products)) products = window.NT_PRODUCTS;
       if (!Array.isArray(products)) return;
 
-      if (!products.some(p => p.id === productId)) {
+      const product = matchProduct(products, productQuery);
+      if (!product) {
         window.NT_PRODUCTS = products;
         showUnavailable();
         return;
       }
       window.NT_PRODUCTS = products;
-      const product = products.find(p => p.id === productId);
+      currentProduct = product;
       renderProduct(product);
+
+      // Mascara na barra de endereços para exibir a URL limpa ?p=slug (sem o id feio)
+      try {
+        const cleanSlug = window.ntWpp?.getCleanSlug ? window.ntWpp.getCleanSlug(product, products) : (product.slug || product.id);
+        const currentUrl = new URL(window.location.href);
+        if (currentUrl.searchParams.get('id') || currentUrl.searchParams.get('p') !== cleanSlug) {
+          const newUrl = `${currentUrl.origin}${currentUrl.pathname}?p=${encodeURIComponent(cleanSlug)}`;
+          window.history.replaceState({ productId: product.id }, '', newUrl);
+        }
+      } catch {}
     }
 
     // Espera main.js publicar o catálogo; se não vier, busca direto.
@@ -743,8 +777,10 @@
         // Sem `reload`: o evento só é disparado quando o conteúdo mudou, e o
         // produto novo já está no cache de memória. `loadProduct()` lê dali.
         loadProduct().then(() => {
-          const product = (window.NT_PRODUCTS || []).find(p => p.id === productId);
-          if (product) renderProduct(product);
+          if (currentProduct) {
+            const product = matchProduct(window.NT_PRODUCTS || [], currentProduct.id);
+            if (product) renderProduct(product);
+          }
         });
       }, 300);
     };

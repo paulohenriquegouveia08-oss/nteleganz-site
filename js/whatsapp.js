@@ -83,12 +83,71 @@ function getProductImageUrl(product) {
   return getAbsoluteImageUrl(candidate);
 }
 
-function getProductPageUrl(productId) {
-  if (!productId) return '';
+function slugify(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function getProductCleanSlug(p, all) {
+  if (!p) return '';
+  const base = p.slug ? slugify(p.slug) : slugify(p.name);
+  const catalog = Array.isArray(all) && all.length ? all : (window.NT_PRODUCTS || []);
+  if (!catalog.length) return base;
+
+  // Encontra todos os itens no catálogo com o mesmo base slug
+  const duplicates = catalog.filter(item => (item.slug ? slugify(item.slug) : slugify(item.name)) === base);
+  if (duplicates.length <= 1) {
+    return base;
+  }
+
+  // Desempata por cor e tamanho
+  const color = p.colors && p.colors[0] ? slugify(p.colors[0]) : '';
+  const size = p.sizes && p.sizes[0] ? slugify(p.sizes[0]) : '';
+
+  let candidate = base;
+  if (color && size) candidate = `${base}-${color}-${size}`;
+  else if (color) candidate = `${base}-${color}`;
+  else if (size) candidate = `${base}-${size}`;
+
+  const sameCandidate = catalog.filter(item => {
+    const itemBase = item.slug ? slugify(item.slug) : slugify(item.name);
+    const iColor = item.colors && item.colors[0] ? slugify(item.colors[0]) : '';
+    const iSize = item.sizes && item.sizes[0] ? slugify(item.sizes[0]) : '';
+    let c = itemBase;
+    if (iColor && iSize) c = `${itemBase}-${iColor}-${iSize}`;
+    else if (iColor) c = `${itemBase}-${iColor}`;
+    else if (iSize) c = `${itemBase}-${iSize}`;
+    return c === candidate;
+  });
+
+  if (sameCandidate.length <= 1) {
+    return candidate;
+  }
+
+  // Se ainda houver duplicata idêntica, usa sufixo curto de 3 caracteres do ID
+  const suffix = String(p.id || '').slice(-3);
+  return suffix ? `${candidate}-${suffix}` : candidate;
+}
+
+function getProductPageUrl(product) {
+  if (!product) return '';
   const origin = (typeof window !== 'undefined' && window.location?.origin)
     ? window.location.origin
     : 'https://nteleganz.com.br';
-  return `${origin}/products/?id=${encodeURIComponent(productId)}`;
+
+  if (typeof product === 'string') {
+    const catalog = window.NT_PRODUCTS || [];
+    const matched = catalog.find(p => String(p.id).toLowerCase() === product.toLowerCase());
+    const slug = matched ? getProductCleanSlug(matched, catalog) : slugify(product);
+    return `${origin}/products/?p=${encodeURIComponent(slug)}`;
+  }
+
+  const slug = getProductCleanSlug(product, window.NT_PRODUCTS);
+  return `${origin}/products/?p=${encodeURIComponent(slug || product.id || '')}`;
 }
 
 /**
@@ -110,11 +169,10 @@ function openWhatsAppGreeting() {
 function orderProductViaWhatsApp(product, size = null, color = null, qty = null) {
   const quantity = Math.max(1, Math.floor(Number(qty) || 1));
   const photoUrl = getProductImageUrl(product);
-  const pageUrl = getProductPageUrl(product?.id);
+  const pageUrl = getProductPageUrl(product);
 
   let message = `Olá! Quero fechar o pedido:\n\n`;
   message += `• *${product?.brand || 'NT Eleganz'} — ${product?.name || 'Produto'}*\n`;
-  if (product?.id) message += `  Ref: #${product.id}\n`;
   if (size) message += `  Tamanho: ${size}\n`;
   if (color) message += `  Cor: ${color}\n`;
   if (quantity > 1) message += `  Quantidade: ${quantity}\n`;
@@ -162,7 +220,6 @@ function checkoutViaWhatsApp(cartItems, total) {
     const photoUrl = getProductImageUrl(item);
     const quantity = Math.max(1, Math.floor(Number(item.qty) || 1));
     message += `${i + 1}. *${item.brand || 'NT Eleganz'} — ${item.name || 'Produto'}*\n`;
-    if (item.id) message += `   Ref: #${item.id}\n`;
     const details = [];
     if (item.size) details.push(`Tam: ${item.size}`);
     if (item.color) details.push(`Cor: ${item.color}`);
@@ -212,6 +269,8 @@ const api = {
   url: generateWhatsAppUrl,
   getImageUrl: getProductImageUrl,
   getProductUrl: getProductPageUrl,
+  getCleanSlug: getProductCleanSlug,
+  slugify: slugify,
 };
 Object.defineProperty(api, '_number', { get: () => whatsappNumber, set: value => { whatsappNumber = normalizePhoneNumber(value); } });
 Object.defineProperty(api, 'number', { get: () => whatsappNumber, set: value => { whatsappNumber = normalizePhoneNumber(value); } });
