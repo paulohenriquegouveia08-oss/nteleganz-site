@@ -1796,11 +1796,15 @@
     }
 
     modal.classList.add('open');
+    modal.classList.add('active');
   };
 
   window.closeOrderModal = function () {
     const modal = document.getElementById('order-modal');
-    if (modal) modal.classList.remove('open');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.classList.remove('active');
+    }
   };
 
   window.editOrder = function (id) {
@@ -1991,6 +1995,7 @@
 
     updateWhatsAppCharCount();
     modal.classList.add('open');
+    modal.classList.add('active');
   };
 
   window.selectWhatsAppTemplate = function (key, btnEl) {
@@ -2024,7 +2029,10 @@
 
   window.closeWhatsAppModal = function () {
     const modal = document.getElementById('whatsapp-modal');
-    if (modal) modal.classList.remove('open');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.classList.remove('active');
+    }
   };
 
   window.copyWhatsAppMessage = function () {
