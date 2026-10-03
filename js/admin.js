@@ -1768,7 +1768,7 @@ window.openOrderModal = function (orderId = null) {
       ? orderData.items.map(it => `${it.brand ? `${it.brand} — ` : ''}${it.name || 'peça'}${it.size ? ` (Tam: ${it.size})` : ''}`).join(', ')
       : (orderData.productName || 'sua peça');
 
-    const followUpMessage = `Olá, ${clientFirstName}! Tudo bem? 😊\n\nAqui é da equipe da NT Eleganz. Notamos que você iniciou o pedido ${orderData.code || ''} em nosso site com: ${itemsListText}.\n\nComo nossas peças são exclusivas e temos poucas unidades em estoque, separamos seu item com prioridade! ✨\n\nGostaria de dar continuidade ou ficou com alguma dúvida sobre o tamanho, frete ou formas de pagamento? Estamos à sua total disposição! 📦🚀`;
+    const followUpMessage = `Olá, ${clientFirstName}! Tudo bem?\n\nAqui é da equipe da NT Eleganz. Notamos que você iniciou o pedido ${orderData.code || ''} em nosso site com: ${itemsListText}.\n\nComo nossas peças são exclusivas e temos poucas unidades em estoque, separamos seu item com prioridade especial.\n\nGostaria de dar continuidade ao pedido ou ficou com alguma dúvida sobre o tamanho, caimento, frete ou formas de pagamento? Estamos à sua total disposição!`;
 
     const encodedFollowUp = encodeURIComponent(followUpMessage);
     const wppCountryPhone = cleanPhoneDigits.startsWith('55') ? cleanPhoneDigits : `55${cleanPhoneDigits}`;
@@ -1778,9 +1778,9 @@ window.openOrderModal = function (orderId = null) {
       <div style="background:linear-gradient(135deg, rgba(37,211,102,0.08), rgba(201,168,76,0.06)); border:1px solid rgba(37,211,102,0.3); border-radius:12px; padding:16px; margin:4px 0 6px 0;">
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
           <div style="font-size:0.9rem; font-weight:700; color:#25d366; display:flex; align-items:center; gap:8px;">
-            <span>🔔</span> Pedido não chegou no WhatsApp? Faça o follow-up do cliente
+            <i class="fas fa-bell"></i> Pedido não chegou no WhatsApp? Faça o follow-up do cliente
           </div>
-          ${orderData.lgpdConsent || (orderData.raw_data && orderData.raw_data.lgpdConsent) ? '<span style="font-size:10px; background:rgba(37,211,102,0.15); color:#25d366; padding:2px 8px; border-radius:4px; font-weight:600;">✓ LGPD Aceito</span>' : ''}
+          ${orderData.lgpdConsent || (orderData.raw_data && orderData.raw_data.lgpdConsent) ? '<span style="font-size:10px; background:rgba(37,211,102,0.15); color:#25d366; padding:2px 8px; border-radius:4px; font-weight:600;"><i class="fas fa-shield-alt"></i> LGPD Aceito</span>' : ''}
         </div>
         <div style="font-size:0.83rem; color:var(--text-muted, #aaa); line-height:1.45; margin-bottom:12px;">
           O cliente gerou este pedido no site mas pode não ter enviado a mensagem no WhatsApp. Envie uma mensagem personalizada de recuperação com 1 clique para não perder a venda:
@@ -1792,7 +1792,7 @@ window.openOrderModal = function (orderId = null) {
             <span>Fazer Follow-up no WhatsApp</span>
           </a>
           <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodedFollowUp}')); if(window.showToast) showToast('✓', 'Mensagem copiada!', 'Cole na conversa com o cliente.');" style="padding:11px 16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#f2efe9; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-            📋 Copiar Mensagem
+            <i class="fas fa-copy"></i> Copiar Mensagem
           </button>
         </div>
       </div>

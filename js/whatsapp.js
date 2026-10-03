@@ -185,7 +185,7 @@ function getProductCleanPhotoUrl(product) {
  * Opens WhatsApp with a direct greeting message
  */
 function openWhatsAppGreeting() {
-  const message = `Olá! Vim pelo site da NT Eleganz e gostaria de saber mais sobre os produtos. 😊`;
+  const message = `Olá! Vim pelo site da NT Eleganz e gostaria de saber mais sobre os produtos.`;
   window.open(generateWhatsAppUrl(message), '_blank');
   registerLead({ type: 'atendimento', messagePreview: message });
 }
@@ -244,15 +244,15 @@ function injectCheckoutModalStyles() {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     .nte-modal-card {
-      background: #0e0e0e !important;
-      border: 1px solid rgba(201, 168, 76, 0.35) !important;
+      background: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
       border-radius: 16px !important;
       max-width: 480px !important;
       width: 100% !important;
       max-height: 90vh !important;
       overflow-y: auto !important;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.15) !important;
-      color: #f2efe9 !important;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+      color: #1a1a1a !important;
       animation: nteSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
       box-sizing: border-box !important;
     }
@@ -260,28 +260,28 @@ function injectCheckoutModalStyles() {
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
-      padding: 16px 20px !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-      background: rgba(201, 168, 76, 0.04) !important;
+      padding: 18px 22px !important;
+      border-bottom: 1px solid #f0ede6 !important;
+      background: #faf8f5 !important;
     }
     .nte-modal-title {
       margin: 0 !important;
       font-size: 1.05rem !important;
       font-weight: 600 !important;
-      color: #f2efe9 !important;
+      color: #111111 !important;
       letter-spacing: -0.01em !important;
       display: flex !important;
       align-items: center !important;
-      gap: 8px !important;
+      gap: 10px !important;
     }
     .nte-modal-close {
-      background: rgba(255, 255, 255, 0.06) !important;
+      background: #f2efe9 !important;
       border: none !important;
-      color: #888 !important;
+      color: #666666 !important;
       width: 32px !important;
       height: 32px !important;
       border-radius: 8px !important;
-      font-size: 1.3rem !important;
+      font-size: 1.2rem !important;
       cursor: pointer !important;
       display: flex !important;
       align-items: center !important;
@@ -289,16 +289,17 @@ function injectCheckoutModalStyles() {
       transition: all 0.15s ease !important;
     }
     .nte-modal-close:hover {
-      background: rgba(255, 255, 255, 0.12) !important;
-      color: #fff !important;
+      background: #e5e0d5 !important;
+      color: #111111 !important;
     }
     .nte-modal-body {
-      padding: 20px !important;
+      padding: 22px !important;
       box-sizing: border-box !important;
+      background: #ffffff !important;
     }
     .nte-item-summary-box {
-      background: rgba(255, 255, 255, 0.03) !important;
-      border: 1px solid rgba(201, 168, 76, 0.2) !important;
+      background: #fcfbf9 !important;
+      border: 1px solid #ebd9b5 !important;
       border-radius: 12px !important;
       padding: 12px 14px !important;
       margin-bottom: 18px !important;
@@ -311,8 +312,8 @@ function injectCheckoutModalStyles() {
       height: 48px !important;
       border-radius: 8px !important;
       object-fit: cover !important;
-      border: 1px solid rgba(201, 168, 76, 0.25) !important;
-      background: #111 !important;
+      border: 1px solid #e5dcce !important;
+      background: #f5f5f5 !important;
       flex-shrink: 0 !important;
     }
     .nte-form-group {
@@ -321,40 +322,41 @@ function injectCheckoutModalStyles() {
     .nte-form-label {
       display: block !important;
       font-size: 0.78rem !important;
-      font-weight: 500 !important;
+      font-weight: 600 !important;
       text-transform: uppercase !important;
       letter-spacing: 0.05em !important;
-      color: #a8a8a8 !important;
+      color: #555555 !important;
       margin-bottom: 6px !important;
     }
     .nte-form-label span.req {
-      color: #c9a84c !important;
+      color: #b38e2d !important;
     }
     .nte-form-input {
       width: 100% !important;
       padding: 12px 14px !important;
-      background: #141414 !important;
-      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      background: #fafaf9 !important;
+      border: 1px solid #dcd8d0 !important;
       border-radius: 10px !important;
-      color: #f2efe9 !important;
+      color: #111111 !important;
       font-size: 0.95rem !important;
       outline: none !important;
       box-sizing: border-box !important;
-      transition: border-color 0.2s, box-shadow 0.2s !important;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s !important;
     }
     .nte-form-input:focus {
+      background: #ffffff !important;
       border-color: #c9a84c !important;
-      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15) !important;
+      box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.18) !important;
     }
     .nte-form-hint {
       font-size: 0.75rem !important;
-      color: #777 !important;
+      color: #777777 !important;
       margin-top: 4px !important;
       display: block !important;
     }
     .nte-lgpd-box {
-      background: rgba(201, 168, 76, 0.04) !important;
-      border: 1px solid rgba(201, 168, 76, 0.2) !important;
+      background: #faf8f5 !important;
+      border: 1px solid #ebd9b5 !important;
       border-radius: 10px !important;
       padding: 12px !important;
       margin: 16px 0 20px 0 !important;
@@ -365,7 +367,7 @@ function injectCheckoutModalStyles() {
       gap: 10px !important;
       cursor: pointer !important;
       font-size: 0.82rem !important;
-      color: #ccc !important;
+      color: #444444 !important;
       line-height: 1.45 !important;
       user-select: none !important;
     }
@@ -378,19 +380,19 @@ function injectCheckoutModalStyles() {
       flex-shrink: 0 !important;
     }
     .nte-lgpd-link {
-      color: #c9a84c !important;
+      color: #9c7a28 !important;
       text-decoration: underline !important;
       font-weight: 600 !important;
       cursor: pointer !important;
     }
     .nte-lgpd-link:hover {
-      color: #dfbe65 !important;
+      color: #7a5e19 !important;
     }
     .nte-btn-submit-wpp {
       width: 100% !important;
       padding: 14px 20px !important;
       background: #25d366 !important;
-      color: #05260f !important;
+      color: #ffffff !important;
       border: none !important;
       border-radius: 10px !important;
       font-size: 0.98rem !important;
@@ -401,17 +403,17 @@ function injectCheckoutModalStyles() {
       justify-content: center !important;
       gap: 10px !important;
       transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease !important;
-      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3) !important;
+      box-shadow: 0 4px 15px rgba(37, 211, 102, 0.28) !important;
     }
     .nte-btn-submit-wpp:hover {
       background: #20ba59 !important;
       transform: translateY(-1px) !important;
-      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4) !important;
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.38) !important;
     }
     .nte-form-alert {
-      background: rgba(239, 68, 68, 0.12) !important;
-      border: 1px solid rgba(239, 68, 68, 0.3) !important;
-      color: #fca5a5 !important;
+      background: #fef2f2 !important;
+      border: 1px solid #fecaca !important;
+      color: #b91c1c !important;
       padding: 10px 14px !important;
       border-radius: 8px !important;
       font-size: 0.82rem !important;
@@ -447,25 +449,31 @@ function openLGPDModal() {
     <div class="nte-modal-card" style="max-width:540px;">
       <div class="nte-modal-header">
         <h3 class="nte-modal-title">
-          <span>📜</span> Termos de Privacidade e LGPD
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span>Termos de Privacidade e LGPD</span>
         </h3>
         <button class="nte-modal-close" id="nte-lgpd-close">×</button>
       </div>
-      <div class="nte-modal-body" style="font-size:0.88rem;line-height:1.6;color:#ccc;">
+      <div class="nte-modal-body" style="font-size:0.88rem;line-height:1.6;color:#333;">
         <p style="margin-top:0;">
           A <strong>NT Eleganz</strong> preza pela transparência, privacidade e segurança dos seus dados, atuando em total conformidade com a <strong>Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018 - LGPD)</strong>.
         </p>
 
-        <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:14px;margin:16px 0;">
-          <strong style="color:#c9a84c;display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:0.92rem;">
-            <span>🛡️</span> Compromisso Expresso Anti-Telemarketing:
+        <div style="background:#faf8f4;border:1px solid #ebd9b5;border-radius:10px;padding:14px;margin:16px 0;">
+          <strong style="color:#9c7a28;display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:0.92rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9c7a28" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Compromisso Expresso Anti-Telemarketing:
           </strong>
-          <span style="color:#f2efe9;">
+          <span style="color:#333;">
             Garantimos formal e expressamente que <strong>seus dados e número de telefone NUNCA serão comercializados, vendidos, alugados ou compartilhados</strong> com empresas de telemarketing, birôs de dados ou quaisquer terceiros. Seu contato é estritamente confidencial.
           </span>
         </div>
 
-        <p><strong style="color:#f2efe9;">Finalidades Exclusivas do Uso:</strong></p>
+        <p><strong style="color:#111;">Finalidades Exclusivas do Uso:</strong></p>
         <ul style="padding-left:20px;margin:8px 0;display:grid;gap:6px;">
           <li>Processar a reserva e o atendimento do seu pedido com segurança;</li>
           <li>Enviar atualizações de status de envio, rastreio e confirmação via WhatsApp;</li>
@@ -473,13 +481,13 @@ function openLGPDModal() {
           <li>Enviar novidades selecionadas e lançamentos exclusivos da NT Eleganz diretamente para você.</li>
         </ul>
 
-        <p style="margin-top:14px;"><strong style="color:#f2efe9;">Seus Direitos (Art. 18 LGPD):</strong></p>
-        <p style="font-size:0.82rem;color:#aaa;margin-bottom:18px;">
+        <p style="margin-top:14px;"><strong style="color:#111;">Seus Direitos (Art. 18 LGPD):</strong></p>
+        <p style="font-size:0.82rem;color:#666;margin-bottom:18px;">
           Você pode a qualquer momento revogar o consentimento, solicitar a confirmação de tratamento ou a exclusão total dos seus dados de nossa base. Basta nos informar no WhatsApp respondendo "CANCELAR" ou entrando em contato com nosso time de atendimento.
         </p>
 
         <button id="nte-lgpd-accept-btn" style="
-          width:100%;padding:12px;background:#c9a84c;color:#000;border:none;border-radius:10px;
+          width:100%;padding:12px;background:#c9a84c;color:#111;border:none;border-radius:10px;
           font-weight:700;font-size:0.92rem;cursor:pointer;transition:background 0.15s;
         " onmouseover="this.style.background='#dfbe65'" onmouseout="this.style.background='#c9a84c'">
           Entendi e Concordo
@@ -492,7 +500,6 @@ function openLGPDModal() {
 
   const close = () => {
     overlay.remove();
-    // Marca o checkbox principal se o modal de checkout estiver aberto
     const cb = document.getElementById('nte-customer-lgpd');
     if (cb) cb.checked = true;
   };
@@ -519,18 +526,26 @@ function openCustomerCheckoutModal({ title, items, total, onConfirm }) {
 
   const previewHtml = firstItem ? `
     <div class="nte-item-summary-box">
-      ${firstItem.image ? `<img src="${firstItem.image}" alt="" class="nte-item-summary-thumb">` : '<div class="nte-item-summary-thumb" style="display:flex;align-items:center;justify-content:center;color:#666;">🛍️</div>'}
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:0.88rem;font-weight:600;color:#f2efe9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          ${firstItem.brand ? `${firstItem.brand} — ` : ''}${firstItem.name || 'Produto'}
-          ${items.length > 1 ? ` <span style="color:#c9a84c;font-weight:700;">(+${items.length - 1} item${items.length > 2 ? 's' : ''})</span>` : ''}
+      ${firstItem.image ? `<img src="${firstItem.image}" alt="" class="nte-item-summary-thumb">` : `
+        <div class="nte-item-summary-thumb" style="display:flex;align-items:center;justify-content:center;color:#9c7a28;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+            <path d="M3 6h18"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
         </div>
-        <div style="font-size:0.8rem;color:#888;margin-top:2px;">
+      `}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.88rem;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${firstItem.brand ? `${firstItem.brand} — ` : ''}${firstItem.name || 'Produto'}
+          ${items.length > 1 ? ` <span style="color:#b38e2d;font-weight:700;">(+${items.length - 1} item${items.length > 2 ? 's' : ''})</span>` : ''}
+        </div>
+        <div style="font-size:0.8rem;color:#666;margin-top:2px;">
           ${firstItem.size ? `Tam: <strong>${firstItem.size}</strong> ` : ''}
           ${firstItem.color ? `| Cor: <strong>${firstItem.color}</strong> ` : ''}
         </div>
       </div>
-      <div style="font-weight:700;color:#c9a84c;font-size:0.92rem;text-align:right;">
+      <div style="font-weight:700;color:#9c7a28;font-size:0.95rem;text-align:right;">
         ${total || firstItem.price || ''}
       </div>
     </div>
@@ -540,7 +555,12 @@ function openCustomerCheckoutModal({ title, items, total, onConfirm }) {
     <div class="nte-modal-card">
       <div class="nte-modal-header">
         <h3 class="nte-modal-title">
-          <span>📦</span> ${title || 'Finalizar Pedido'}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="1.8">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+            <path d="M3 6h18"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <span>${title || 'Finalizar Pedido'}</span>
         </h3>
         <button class="nte-modal-close" id="nte-checkout-close">×</button>
       </div>
@@ -578,7 +598,10 @@ function openCustomerCheckoutModal({ title, items, total, onConfirm }) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
           </svg>
-          <span>Finalizar Pedido no WhatsApp ➔</span>
+          <span>Finalizar Pedido no WhatsApp</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </button>
       </div>
     </div>
@@ -667,7 +690,7 @@ function openCustomerCheckoutModal({ title, items, total, onConfirm }) {
  * Opens WhatsApp with a direct greeting message
  */
 function openWhatsAppGreeting() {
-  const message = `Olá! Vim pelo site da NT Eleganz e gostaria de saber mais sobre os produtos. 😊`;
+  const message = `Olá! Vim pelo site da NT Eleganz e gostaria de saber mais sobre os produtos.`;
   window.open(generateWhatsAppUrl(message), '_blank');
   registerLead({ type: 'atendimento', messagePreview: message });
 }
