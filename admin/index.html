@@ -64,6 +64,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span>Pedidos</span>
       </div>
+      <div class="nav-item" data-panel="clientes" onclick="showPanel('clientes', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Clientes</span><b class="nav-notification" id="clientes-nav-badge" hidden>0</b>
+      </div>
       <div class="nav-item" data-panel="leads" onclick="showPanel('leads', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
         <span>Leads</span><b class="nav-notification" id="leads-nav-badge" hidden>0</b>
@@ -456,6 +460,59 @@
       </div>
 
       <!-- ══════════════════════════════════════════
+           PANEL: CLIENTES
+      ══════════════════════════════════════════ -->
+      <div id="panel-clientes" class="admin-panel">
+        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+          <div class="kpi-card">
+            <div class="kpi-header"><span class="kpi-title">Total de Clientes</span></div>
+            <div class="kpi-value" id="kpi-clients-total">0</div>
+            <div class="kpi-sub">Cadastrados no site</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header"><span class="kpi-title">Com WhatsApp</span></div>
+            <div class="kpi-value" id="kpi-clients-wpp">0</div>
+            <div class="kpi-sub">Contatos disponíveis</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header"><span class="kpi-title">Total em Pedidos</span></div>
+            <div class="kpi-value" id="kpi-clients-revenue">R$ 0,00</div>
+            <div class="kpi-sub">Volume total gerado</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-header"><span class="kpi-title">Ticket Médio</span></div>
+            <div class="kpi-value" id="kpi-clients-ticket">R$ 0,00</div>
+            <div class="kpi-sub">Por cliente</div>
+          </div>
+        </div>
+
+        <div class="data-card">
+          <div class="data-card-header" style="flex-wrap:wrap; gap:12px;">
+            <div class="data-card-title">Base de Clientes & Contatos</div>
+            <div class="data-card-actions" style="flex:1; justify-content:flex-end; max-width:400px;">
+              <input type="text" class="form-control" id="customer-search-input" placeholder="Buscar por nome, telefone ou e-mail..." oninput="filterCustomers()" style="width:100%;" />
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>WhatsApp</th>
+                  <th>E-mail</th>
+                  <th>Qtd. Pedidos</th>
+                  <th>Total em Pedidos</th>
+                  <th>Último Pedido</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════
            PANEL: CONFIGURAÇÕES
       ══════════════════════════════════════════ -->
       <div id="panel-configuracoes" class="admin-panel">
@@ -802,12 +859,28 @@
       <button class="btn btn-danger" id="confirm-btn" type="button">Confirmar exclusão</button>
     </div>
   </div>
+<!-- ══════════════════════════════════════════
+     MODAL: HISTÓRICO DO CLIENTE
+══════════════════════════════════════════ -->
+<div id="customer-modal" class="modal-overlay" onclick="if(event.target===this)closeCustomerModal()">
+  <div class="modal" style="max-width:760px; width:100%;">
+    <div class="modal-header">
+      <div class="modal-title" id="customer-modal-title">Histórico do Cliente</div>
+      <button class="modal-close" onclick="closeCustomerModal()">×</button>
+    </div>
+    <div class="modal-body" id="customer-modal-body" style="max-height:75vh; overflow-y:auto; padding:20px;">
+      <!-- Conteúdo dinâmico -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCustomerModal()">Fechar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Scripts -->
 <script src="../js/auth.js?v=20260930"></script>
 <script src="../js/db.js?v=20260930"></script>
-<script src="../js/admin.js?v=20260930"></script>
+<script src="../js/admin.js?v=20261003"></script>
 <script>
   function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');

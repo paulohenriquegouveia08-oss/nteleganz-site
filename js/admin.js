@@ -163,8 +163,8 @@
     produtos: 'Produtos',
     faq: 'Perguntas frequentes',
     pedidos: 'Pedidos',
+    clientes: 'Base de Clientes',
     leads: 'Leads do WhatsApp',
-
     configuracoes: 'Configurações',
   };
 
@@ -195,6 +195,7 @@
       if (panelId === 'faq') loadFaq();
 
       if (panelId === 'pedidos') refreshOrders();
+      if (panelId === 'clientes') renderCustomersTable();
       if (panelId === 'leads') {
         renderLeadsTable();
         markLeadsRead();
@@ -834,6 +835,10 @@
     }
     renderOrdersTable();
     loadOverview();
+    if (typeof aggregateCustomersFromOrders === 'function') {
+      allCustomers = aggregateCustomersFromOrders(allOrders);
+      updateCustomersKpis(allCustomers);
+    }
   }
 
   function renderProductsTableData(products) {
@@ -1757,6 +1762,42 @@ window.openOrderModal = function (orderId = null) {
       </div>
     ` : '';
     
+    const cleanPhoneDigits = String(orderData.phone || '').replace(/\D/g, '');
+    const clientFirstName = (orderData.client || '').trim().split(' ')[0] || 'Cliente';
+    const itemsListText = Array.isArray(orderData.items) && orderData.items.length > 0
+      ? orderData.items.map(it => `${it.brand ? `${it.brand} — ` : ''}${it.name || 'peça'}${it.size ? ` (Tam: ${it.size})` : ''}`).join(', ')
+      : (orderData.productName || 'sua peça');
+
+    const followUpMessage = `Olá, ${clientFirstName}! Tudo bem? 😊\n\nAqui é da equipe da NT Eleganz. Notamos que você iniciou o pedido ${orderData.code || ''} em nosso site com: ${itemsListText}.\n\nComo nossas peças são exclusivas e temos poucas unidades em estoque, separamos seu item com prioridade! ✨\n\nGostaria de dar continuidade ou ficou com alguma dúvida sobre o tamanho, frete ou formas de pagamento? Estamos à sua total disposição! 📦🚀`;
+
+    const encodedFollowUp = encodeURIComponent(followUpMessage);
+    const wppCountryPhone = cleanPhoneDigits.startsWith('55') ? cleanPhoneDigits : `55${cleanPhoneDigits}`;
+    const followUpUrl = `https://wa.me/${wppCountryPhone}?text=${encodedFollowUp}`;
+
+    const followUpCard = cleanPhoneDigits.length >= 8 ? `
+      <div style="background:linear-gradient(135deg, rgba(37,211,102,0.08), rgba(201,168,76,0.06)); border:1px solid rgba(37,211,102,0.3); border-radius:12px; padding:16px; margin:4px 0 6px 0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <div style="font-size:0.9rem; font-weight:700; color:#25d366; display:flex; align-items:center; gap:8px;">
+            <span>🔔</span> Pedido não chegou no WhatsApp? Faça o follow-up do cliente
+          </div>
+          ${orderData.lgpdConsent || (orderData.raw_data && orderData.raw_data.lgpdConsent) ? '<span style="font-size:10px; background:rgba(37,211,102,0.15); color:#25d366; padding:2px 8px; border-radius:4px; font-weight:600;">✓ LGPD Aceito</span>' : ''}
+        </div>
+        <div style="font-size:0.83rem; color:var(--text-muted, #aaa); line-height:1.45; margin-bottom:12px;">
+          O cliente gerou este pedido no site mas pode não ter enviado a mensagem no WhatsApp. Envie uma mensagem personalizada de recuperação com 1 clique para não perder a venda:
+        </div>
+        <div style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px; font-size:0.82rem; color:#e0ded9; line-height:1.45; margin-bottom:12px; white-space:pre-wrap; max-height:120px; overflow-y:auto;">${escHtml(followUpMessage)}</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="${followUpUrl}" target="_blank" style="flex:1; min-width:200px; padding:11px 16px; background:#25d366; color:#05260f; text-decoration:none; font-weight:700; font-size:0.88rem; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 10px rgba(37,211,102,0.25); transition:background 0.15s;" onmouseover="this.style.background='#20ba59'" onmouseout="this.style.background='#25d366'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+            <span>Fazer Follow-up no WhatsApp</span>
+          </a>
+          <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodedFollowUp}')); if(window.showToast) showToast('✓', 'Mensagem copiada!', 'Cole na conversa com o cliente.');" style="padding:11px 16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#f2efe9; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+            📋 Copiar Mensagem
+          </button>
+        </div>
+      </div>
+    ` : '';
+    
     body.innerHTML = `
       <input type="hidden" id="order-edit-id" value="${orderId || ''}">
       <div style="display:grid;gap:16px;">
@@ -1766,10 +1807,17 @@ window.openOrderModal = function (orderId = null) {
           <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Nome do Cliente *</label>
           <input type="text" id="o-client" value="${escHtml(orderData.client || '')}" placeholder="João Silva" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
         </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">WhatsApp do Cliente</label>
-          <input type="text" id="o-phone" value="${escHtml(orderData.phone || '')}" placeholder="5511999999999" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">WhatsApp do Cliente</label>
+            <input type="text" id="o-phone" value="${escHtml(orderData.phone || '')}" placeholder="5511999999999" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
+          </div>
+          <div>
+            <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">E-mail do Cliente</label>
+            <input type="email" id="o-email" value="${escHtml(orderData.email || (orderData.raw_data && orderData.raw_data.email) || '')}" placeholder="cliente@email.com" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
+          </div>
         </div>
+        ${followUpCard}
         <div>
           <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Produto *</label>
           <select id="o-product" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;cursor:pointer;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">${productsHtml}</select>
@@ -1878,6 +1926,7 @@ window.openOrderModal = function (orderId = null) {
     const orderData = {
       client: getVal('o-client'),
       phone: getVal('o-phone'),
+      email: getVal('o-email'),
       productId: sel?.value || '',
       productName: opt?.dataset.name || '',
       productBrand: opt?.dataset.brand || '',
@@ -1989,6 +2038,298 @@ window.openOrderModal = function (orderId = null) {
         alert('Erro ao excluir: ' + e.message);
       }
     });
+  };
+
+  // ══════════════════════════════════════════
+  //  CUSTOMERS (CLIENTES) MANAGEMENT
+  // ══════════════════════════════════════════
+  let allCustomers = [];
+
+  function aggregateCustomersFromOrders(orders) {
+    const map = new Map();
+
+    (orders || []).forEach(order => {
+      const phoneDigits = String(order.phone || '').replace(/\D/g, '');
+      const rawEmail = (order.email || (order.raw_data && order.raw_data.email) || '').trim();
+      const emailNorm = rawEmail.toLowerCase();
+      const clientName = (order.client || 'Cliente do site').trim();
+
+      let key = '';
+      if (phoneDigits && phoneDigits.length >= 8) {
+        key = `phone:${phoneDigits.slice(-8)}`;
+      } else if (emailNorm) {
+        key = `email:${emailNorm}`;
+      } else if (clientName && clientName.toLowerCase() !== 'cliente do site') {
+        key = `name:${clientName.toLowerCase()}`;
+      } else {
+        key = `order:${order.id || order.code || Math.random()}`;
+      }
+
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          name: clientName,
+          phone: order.phone || '',
+          cleanPhone: phoneDigits,
+          email: rawEmail,
+          orders: [],
+          totalSpent: 0,
+          lastOrderDate: order.createdAt || order.created_at || '',
+          lastOrderCode: order.code || '',
+          hasLGPD: Boolean(order.lgpdConsent || (order.raw_data && order.raw_data.lgpdConsent)),
+        });
+      }
+
+      const cust = map.get(key);
+      if (cust.name === 'Cliente do site' && clientName !== 'Cliente do site') {
+        cust.name = clientName;
+      }
+      if (!cust.phone && order.phone) {
+        cust.phone = order.phone;
+        cust.cleanPhone = phoneDigits;
+      }
+      if (!cust.email && rawEmail) {
+        cust.email = rawEmail;
+      }
+      if (order.lgpdConsent || (order.raw_data && order.raw_data.lgpdConsent)) {
+        cust.hasLGPD = true;
+      }
+
+      cust.orders.push(order);
+
+      const valStr = String(order.value || '0').replace(/[^\d,]/g, '').replace(',', '.');
+      const valNum = parseFloat(valStr) || 0;
+      cust.totalSpent += valNum;
+
+      const orderTime = new Date(order.createdAt || order.created_at || 0).getTime();
+      const lastTime = new Date(cust.lastOrderDate || 0).getTime();
+      if (orderTime >= lastTime) {
+        cust.lastOrderDate = order.createdAt || order.created_at;
+        cust.lastOrderCode = order.code || '';
+      }
+    });
+
+    const list = Array.from(map.values());
+    list.sort((a, b) => new Date(b.lastOrderDate || 0) - new Date(a.lastOrderDate || 0));
+    return list;
+  }
+
+  function updateCustomersKpis(customers) {
+    const totalCount = customers.length;
+    const withWpp = customers.filter(c => c.cleanPhone && c.cleanPhone.length >= 8).length;
+    const totalRevenue = customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
+    const avgTicket = totalCount > 0 ? (totalRevenue / totalCount) : 0;
+
+    setText('kpi-clients-total', totalCount);
+    setText('kpi-clients-wpp', withWpp);
+    setText('kpi-clients-revenue', fmt.currency(totalRevenue));
+    setText('kpi-clients-ticket', fmt.currency(avgTicket));
+
+    const badge = document.getElementById('clientes-nav-badge');
+    if (badge) {
+      badge.textContent = totalCount;
+      badge.hidden = totalCount === 0;
+    }
+  }
+
+  function renderCustomersTable(filteredList = null) {
+    allCustomers = aggregateCustomersFromOrders(allOrders);
+    updateCustomersKpis(allCustomers);
+
+    const tbody = document.getElementById('customers-tbody');
+    if (!tbody) return;
+
+    const list = filteredList !== null ? filteredList : allCustomers;
+
+    if (!list.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="table-empty">
+            <div class="empty-state" style="padding:40px 20px; text-align:center;">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 12px auto; display:block; opacity:0.6;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <p style="font-weight:600; font-size:1rem; margin-bottom:4px; color:var(--text-primary);">Nenhum cliente encontrado</p>
+              <small style="color:var(--text-muted);">Os clientes que gerarem pedidos no site aparecerão aqui automaticamente com WhatsApp e histórico.</small>
+            </div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = list.map(c => {
+      const initials = (c.name || 'C').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'C';
+      const wppPhone = c.cleanPhone.startsWith('55') ? c.cleanPhone : `55${c.cleanPhone}`;
+      const wppLink = c.cleanPhone.length >= 8 ? `https://wa.me/${wppPhone}` : '';
+
+      return `
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:34px; height:34px; border-radius:50%; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:#c9a84c; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">
+                ${escHtml(initials)}
+              </div>
+              <div>
+                <strong style="color:var(--text-primary); cursor:pointer;" onclick="openCustomerHistoryModal('${escHtml(c.key)}')">${escHtml(c.name)}</strong>
+                ${c.hasLGPD ? '<span class="badge" style="background:rgba(37,211,102,0.12);color:#25d366;font-size:10px;padding:1px 6px;margin-left:6px;border-radius:4px;">LGPD ✓</span>' : ''}
+              </div>
+            </div>
+          </td>
+          <td>
+            ${c.cleanPhone.length >= 8 ? `
+              <a href="${wppLink}" target="_blank" style="color:#25d366; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:500;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                ${escHtml(c.phone || c.cleanPhone)}
+              </a>
+            ` : '<span style="color:var(--text-muted);">-</span>'}
+          </td>
+          <td>
+            ${c.email ? `<span style="color:var(--text-secondary); font-size:0.88rem;">${escHtml(c.email)}</span>` : '<span style="color:var(--text-muted);">-</span>'}
+          </td>
+          <td>
+            <span class="badge badge-gold" style="font-weight:600;">${c.orders.length} pedido${c.orders.length > 1 ? 's' : ''}</span>
+          </td>
+          <td style="font-weight:600; color:var(--text-primary);">
+            ${fmt.currency(c.totalSpent)}
+          </td>
+          <td>
+            <div style="font-size:0.85rem; color:var(--text-secondary);">
+              ${c.lastOrderDate ? fmt.date(c.lastOrderDate) : '-'}
+            </div>
+            ${c.lastOrderCode ? `<div style="font-family:monospace; font-size:11px; color:#c9a84c;">${escHtml(c.lastOrderCode)}</div>` : ''}
+          </td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-sm btn-outline" onclick="openCustomerHistoryModal('${escHtml(c.key)}')">
+                Ver Pedidos
+              </button>
+              ${c.cleanPhone.length >= 8 ? `
+                <a href="${wppLink}" target="_blank" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; display:inline-flex; align-items:center; justify-content:center; padding:5px 8px; text-decoration:none;" title="Conversar no WhatsApp">
+                  💬
+                </a>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  window.renderCustomersTable = renderCustomersTable;
+
+  window.filterCustomers = function () {
+    const term = (document.getElementById('customer-search-input')?.value || '').toLowerCase().trim();
+    if (!term) {
+      renderCustomersTable(allCustomers);
+      return;
+    }
+    const filtered = allCustomers.filter(c =>
+      (c.name || '').toLowerCase().includes(term) ||
+      (c.phone || '').includes(term) ||
+      (c.cleanPhone || '').includes(term) ||
+      (c.email || '').toLowerCase().includes(term)
+    );
+    renderCustomersTable(filtered);
+  };
+
+  window.openCustomerHistoryModal = function (customerKey) {
+    const cust = allCustomers.find(c => c.key === customerKey);
+    if (!cust) return;
+
+    const modal = document.getElementById('customer-modal');
+    const title = document.getElementById('customer-modal-title');
+    const body = document.getElementById('customer-modal-body');
+    if (!modal || !body) return;
+
+    title.innerHTML = `Histórico de Pedidos: <span style="color:#c9a84c;">${escHtml(cust.name)}</span>`;
+
+    const wppPhone = cust.cleanPhone.startsWith('55') ? cust.cleanPhone : `55${cust.cleanPhone}`;
+    const wppLink = cust.cleanPhone.length >= 8 ? `https://wa.me/${wppPhone}` : '';
+
+    const ordersSorted = [...cust.orders].sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+
+    body.innerHTML = `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(201,168,76,0.25); border-radius:12px; padding:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary);">${escHtml(cust.name)}</div>
+          <div style="display:flex; align-items:center; gap:12px; margin-top:4px; font-size:0.85rem; color:var(--text-muted); flex-wrap:wrap;">
+            ${cust.phone ? `<span>📱 <strong>${escHtml(cust.phone)}</strong></span>` : ''}
+            ${cust.email ? `<span>✉️ <strong>${escHtml(cust.email)}</strong></span>` : ''}
+            ${cust.hasLGPD ? '<span style="color:#25d366;">✓ Consentimento LGPD ativo</span>' : ''}
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          ${wppLink ? `
+            <a href="${wppLink}" target="_blank" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              <span>💬</span> Conversar no WhatsApp
+            </a>
+          ` : ''}
+        </div>
+      </div>
+
+      <div style="font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#c9a84c; margin-bottom:12px;">
+        Pedidos Realizados (${ordersSorted.length}) — Total Gasto: ${fmt.currency(cust.totalSpent)}
+      </div>
+
+      <div style="display:grid; gap:14px;">
+        ${ordersSorted.map(order => {
+          const thumb = getOrderThumbnail(order);
+          const orderCode = order.code || `#NTE-${String(order.id).slice(-4).toUpperCase()}`;
+          const cleanCode = orderCode.replace('#', '');
+          const itemsCount = Array.isArray(order.items) ? order.items.length : 1;
+
+          return `
+            <div style="background:var(--bg-surface, #141414); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  ${thumb ? `<img src="${escHtml(thumb)}" style="width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111;">` : '<div style="width:44px; height:44px; border-radius:8px; background:#222; display:flex; align-items:center; justify-content:center;">🛍️</div>'}
+                  <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span class="badge badge-gold" style="font-family:monospace; font-weight:700;">${escHtml(orderCode)}</span>
+                      <span style="font-size:12px; color:var(--text-muted);">${fmt.date(order.createdAt || order.created_at)}</span>
+                    </div>
+                    <div style="font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-top:3px;">
+                      ${escHtml(order.productName || 'Detalhes do Pedido')}
+                    </div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:700; color:#c9a84c; font-size:1rem;">${escHtml(order.value || '')}</div>
+                  <div style="margin-top:4px;">${orderStatusBadge(order.status)}</div>
+                </div>
+              </div>
+
+              ${Array.isArray(order.items) && order.items.length > 0 ? `
+                <div style="background:rgba(0,0,0,0.25); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.82rem; color:#aaa;">
+                  <div style="margin-bottom:6px; font-weight:600; color:#ddd;">Itens (${order.items.length}):</div>
+                  ${order.items.map(it => `
+                    <div style="display:flex; justify-content:space-between; padding:3px 0;">
+                      <span>• ${escHtml(it.brand ? `${it.brand} — ` : '')}${escHtml(it.name || 'Produto')} ${it.size ? `(Tam: ${escHtml(it.size)})` : ''} ${it.color ? `(${escHtml(it.color)})` : ''} x${escHtml(String(it.qty || 1))}</span>
+                      <strong style="color:#c9a84c;">${escHtml(it.price || '')}</strong>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <a href="/order/${encodeURIComponent(cleanCode)}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">
+                  🔗 Ver Página do Pedido
+                </a>
+                <button class="btn btn-sm btn-primary" onclick="closeCustomerModal(); openOrderModal('${escHtml(order.id)}');">
+                  ✏️ Editar no Admin
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    modal.classList.add('active');
+  };
+
+  window.closeCustomerModal = function () {
+    const modal = document.getElementById('customer-modal');
+    if (modal) modal.classList.remove('active');
   };
 
   // ══════════════════════════════════════════

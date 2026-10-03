@@ -67,12 +67,49 @@ function saveLocalOrders(array $orders): void {
 $method = $_SERVER['REQUEST_METHOD'];
 $orderId = isset($_GET['id']) ? trim((string)$_GET['id']) : '';
 $orderCode = isset($_GET['code']) ? trim((string)$_GET['code']) : '';
+$clientPhone = isset($_GET['client_phone']) ? trim((string)$_GET['client_phone']) : '';
+$clientEmail = isset($_GET['client_email']) ? trim((string)$_GET['client_email']) : '';
 
 $rawBody = file_get_contents('php://input');
 $input = $rawBody ? json_decode($rawBody, true) : null;
 
 switch ($method) {
     case 'GET':
+        // Busca pedidos de um cliente específico por telefone ou e-mail
+        if ($clientPhone !== '' || $clientEmail !== '') {
+            $queryParams = http_build_query(array_filter([
+                'client_phone' => $clientPhone,
+                'client_email' => $clientEmail
+            ]));
+            $vps = callVpsOrders('GET', VPS_API_ORDERS . '?' . $queryParams);
+            if ($vps !== null && isset($vps['orders']) && is_array($vps['orders'])) {
+                echo json_encode(['success' => true, 'orders' => $vps['orders']]);
+                exit;
+            }
+
+            // Fallback local: busca por sufixo do telefone ou e-mail
+            $cleanPhoneDigits = preg_replace('/\D/', '', $clientPhone);
+            $suffix = strlen($cleanPhoneDigits) >= 8 ? substr($cleanPhoneDigits, -8) : $cleanPhoneDigits;
+            $cleanEmail = strtolower($clientEmail);
+
+            $local = readLocalOrders();
+            $matches = [];
+            foreach ($local as $o) {
+                $oPhone = preg_replace('/\D/', '', (string)($o['phone'] ?? ''));
+                $oEmail = strtolower((string)($o['email'] ?? ($o['raw_data']['email'] ?? '')));
+
+                $matchPhone = ($suffix !== '' && $oPhone !== '' && (strpos($oPhone, $suffix) !== false));
+                $matchEmail = ($cleanEmail !== '' && $oEmail === $cleanEmail);
+
+                if ($matchPhone || $matchEmail) {
+                    $matches[] = $o;
+                }
+            }
+
+            echo json_encode(['success' => true, 'orders' => $matches]);
+            exit;
+        }
+
         // Busca pedido específico por código (#NTE-XXXX / NTE-XXXX) ou ID
         if ($orderCode !== '' || $orderId !== '') {
             $searchCode = strtoupper(ltrim($orderCode, '#'));
