@@ -180,7 +180,7 @@
 
     // Tenta no backend NT Eleganz
     try {
-      const ident = currentUser?.email || currentUser?.username || 'adriano';
+      const ident = currentUser?.email || currentUser?.username || '';
       const res = await fetch('/api/admin_auth.php?action=change_password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -231,7 +231,7 @@
     changePassword,
     changeUsername,
     getClient,
-    getUsername: () => currentUser?.name || currentUser?.email || currentUser?.username || 'Adriano Tavares',
+    getUsername: () => currentUser?.name || currentUser?.email || currentUser?.username || 'Admin',
     getUser: () => currentUser
   };
 })();
