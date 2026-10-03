@@ -293,32 +293,42 @@
         style.id = 'admin-modal-force-css';
         style.textContent = `
           .modal-overlay.open,
-          .modal-overlay.open .modal {
+          .modal-overlay.active {
             opacity: 1 !important;
             visibility: visible !important;
+            pointer-events: auto !important;
             display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
           }
-          .modal-overlay.open .modal {
-            opacity: 1 !important;
-            visibility: visible !important;
+          .modal-overlay:not(.open):not(.active) {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+          }
+          .modal-overlay .modal {
+            display: flex !important;
+            flex-direction: column !important;
+            max-height: 90vh !important;
+            overflow: hidden !important;
             position: relative !important;
-            z-index: 201 !important;
             background: var(--bg-surface) !important;
             border: 1px solid var(--border) !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
           }
-          .modal-overlay {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
+          .modal-overlay .modal .modal-header,
+          .modal-overlay .modal .modal-footer {
+            flex-shrink: 0 !important;
           }
-          /* Animations for dynamic modals */
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+          .modal-overlay .modal .modal-body {
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
           }
-          @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-          }
+          #product-modal { z-index: 200 !important; }
+          #order-modal { z-index: 205 !important; }
+          #customer-modal { z-index: 210 !important; }
+          #whatsapp-modal { z-index: 300 !important; }
+          #confirm-modal { z-index: 400 !important; }
         `;
         document.head.appendChild(style);
       }
@@ -1604,7 +1614,7 @@
             const digits = String(rawPhone).replace(/\D/g, '');
             if (!digits) return '<span style="font-size:11px; color:var(--text-muted); opacity:0.6;">Sem telefone</span>';
             return `
-              <button type="button" onclick="event.stopPropagation(); openWhatsAppModal({ client: '${escHtml(o.client || 'Cliente')}', phone: '${escHtml(rawPhone)}', orderCode: '${escHtml(o.code || '')}', items: ${JSON.stringify(o.items || [])}, status: '${escHtml(o.status || '')}', value: '${escHtml(o.value || '')}', orderId: '${escHtml(o.id)}' })" style="background:rgba(37,211,102,0.12); color:#168a3f; border:1px solid rgba(37,211,102,0.3); font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; margin-top:2px; cursor:pointer;" title="Opções de mensagem no WhatsApp">
+              <button type="button" onclick="event.stopPropagation(); openWhatsAppModalForOrder('${escHtml(o.id)}')" style="background:rgba(37,211,102,0.12); color:#168a3f; border:1px solid rgba(37,211,102,0.3); font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; margin-top:2px; cursor:pointer;" title="Opções de mensagem no WhatsApp">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                 <span>${escHtml(rawPhone)}</span>
               </button>
@@ -1720,7 +1730,7 @@
           Converse diretamente com o cliente escolhendo mensagens de confirmação, recuperação ou acompanhamento de envio:
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button type="button" class="btn btn-sm" onclick="openWhatsAppModal({ client: '${escHtml(orderData.client || '')}', phone: '${escHtml(orderData.phone || '')}', orderCode: '${escHtml(orderData.code || '')}', items: ${JSON.stringify(orderData.items || [])}, status: '${escHtml(orderData.status || '')}', value: '${escHtml(orderData.value || '')}', orderId: '${escHtml(orderData.id || '')}' })" style="background:#25d366; color:#05260f; font-weight:700; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px;">
+          <button type="button" class="btn btn-sm" onclick="openWhatsAppModalForOrder('${escHtml(orderData.id || orderId || '')}')" style="background:#25d366; color:#05260f; font-weight:700; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
             <span>Opções de Mensagem WhatsApp</span>
           </button>
@@ -1879,6 +1889,35 @@
 
   // ── WhatsApp Modal (Modelos e Envio) ──
   window.__activeWhatsAppTarget = null;
+
+  window.openWhatsAppModalForOrder = function (orderId) {
+    const o = allOrders.find(item => String(item.id) === String(orderId));
+    if (o) {
+      openWhatsAppModal({
+        client: o.client,
+        phone: o.phone || (o.raw_data && o.raw_data.phone),
+        email: o.email || (o.raw_data && o.raw_data.email),
+        orderCode: o.code,
+        items: o.items,
+        status: o.status,
+        value: o.value,
+        orderId: o.id
+      });
+    } else {
+      openWhatsAppModal({ orderId });
+    }
+  };
+
+  window.openWhatsAppModalForCustomer = function (customerKey) {
+    const c = allCustomers.find(item => item.key === customerKey);
+    if (c) {
+      openWhatsAppModal({
+        client: c.name,
+        phone: c.cleanPhone || c.phone,
+        email: c.email
+      });
+    }
+  };
 
   window.openWhatsAppModal = function (options = {}) {
     const modal = document.getElementById('whatsapp-modal');
@@ -2196,7 +2235,7 @@
           </td>
           <td>
             ${hasPhone ? `
-              <button type="button" class="btn btn-sm btn-ghost" style="color:#25d366; padding:4px 8px; font-weight:500; display:inline-flex; align-items:center; gap:6px; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25); border-radius:6px; cursor:pointer;" onclick="event.stopPropagation(); openWhatsAppModal({ client: '${escHtml(c.name)}', phone: '${escHtml(c.cleanPhone)}', email: '${escHtml(c.email || '')}' })" title="Enviar mensagem via WhatsApp com modelos prontos">
+              <button type="button" class="btn btn-sm btn-ghost" style="color:#25d366; padding:4px 8px; font-weight:500; display:inline-flex; align-items:center; gap:6px; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25); border-radius:6px; cursor:pointer;" onclick="event.stopPropagation(); openWhatsAppModalForCustomer('${escHtml(c.key)}')" title="Enviar mensagem via WhatsApp com modelos prontos">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                 <span>${escHtml(c.phone || c.cleanPhone)}</span>
               </button>
@@ -2223,7 +2262,7 @@
                 Ver Pedidos
               </button>
               ${hasPhone ? `
-                <button type="button" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; border-radius:6px; cursor:pointer;" onclick="event.stopPropagation(); openWhatsAppModal({ client: '${escHtml(c.name)}', phone: '${escHtml(c.cleanPhone)}', email: '${escHtml(c.email || '')}' })" title="Conversar no WhatsApp">
+                <button type="button" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; border-radius:6px; cursor:pointer;" onclick="event.stopPropagation(); openWhatsAppModalForCustomer('${escHtml(c.key)}')" title="Conversar no WhatsApp">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                 </button>
               ` : ''}
@@ -2359,7 +2398,7 @@
               <span>Ver no Site</span>
             </a>
 
-            <button type="button" class="btn btn-sm" style="background:#25d366; color:#05260f; font-weight:700; border:none; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="openWhatsAppModal(allOrders.find(o => String(o.id) === '${escHtml(String(order.id))}'))">
+            <button type="button" class="btn btn-sm" style="background:#25d366; color:#05260f; font-weight:700; border:none; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="openWhatsAppModalForOrder('${escHtml(String(order.id))}')">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
               <span>WhatsApp</span>
             </button>
@@ -2429,7 +2468,7 @@
 
         <div>
           ${hasPhone ? `
-            <button type="button" class="btn" style="background:#25d366; color:#05260f; font-weight:700; border:none; display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="openWhatsAppModal({ client: '${escHtml(cust.name)}', phone: '${escHtml(cust.cleanPhone)}', email: '${escHtml(cust.email || '')}' })">
+            <button type="button" class="btn" style="background:#25d366; color:#05260f; font-weight:700; border:none; display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="openWhatsAppModalForCustomer('${escHtml(cust.key)}')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
               <span>Mensagem no WhatsApp</span>
             </button>
