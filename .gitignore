@@ -6,7 +6,6 @@
 # (Esses arquivos vivem no servidor Hostinger e NUNCA devem ser sobrescritos pelo Git)
 data/products.json
 data/backups/
-assets/images/products/
 
 # Arquivos de sistema operacional e metadados
 .DS_Store

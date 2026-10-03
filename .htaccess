@@ -95,9 +95,9 @@ DirectoryIndex index.php index.html index.htm
     RewriteRule ^order(?:/([a-zA-Z0-9_.-]+))?/?$ pedido/index.php?code=$1 [L,QSA]
 
     # Fallback automático para fotos de produtos: se o arquivo não existir fisicamente na Hostinger,
-    # redireciona para a VPS (onde as fotos estão salvas e intactas)
+    # busca na VPS e salva localmente servindo direto com 200 OK (nunca expõe ou redireciona para sslip.io)
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^assets/images/products/([a-zA-Z0-9_.-]+\.webp)$ https://137-131-233-254.sslip.io/nteleganz/uploads/$1 [L,R=302]
+    RewriteRule ^assets/images/products/([a-zA-Z0-9_.-]+\.(?:webp|png|jpe?g|avif))$ assets/images/products/proxy.php?img=$1 [L,QSA]
 </IfModule>
 
 # Fallback para quem não tiver mod_rewrite: nega por caminho de diretório.

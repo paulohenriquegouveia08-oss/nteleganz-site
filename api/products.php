@@ -90,6 +90,59 @@ function callVpsApi(string $method, string $path, ?array $body = null, ?string $
     return is_array($decoded) ? $decoded : null;
 }
 
+function slugifyProductName(string $text): string
+{
+    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+    $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text) ?: $text;
+    $text = preg_replace('~[^-\w]+~', '', $text);
+    $text = trim($text, '-');
+    $text = preg_replace('~-+~', '-', $text);
+    return strtolower($text);
+}
+
+function differentiateProductName(string $rawName, array $catalogProducts, ?string $excludeId = null): string
+{
+    $trimmed = trim($rawName);
+    if ($trimmed === '') return $trimmed;
+
+    $others = array_filter($catalogProducts, static function ($p) use ($excludeId) {
+        if ($excludeId !== null && ($p['id'] ?? '') === $excludeId) return false;
+        return true;
+    });
+
+    $exactMatch = false;
+    foreach ($others as $p) {
+        if (strcasecmp(trim((string)($p['name'] ?? '')), $trimmed) === 0) {
+            $exactMatch = true;
+            break;
+        }
+    }
+
+    if (!$exactMatch) {
+        return $trimmed;
+    }
+
+    $baseName = $trimmed;
+    if (preg_match('/^(.*?)(?:\s+(\d+))?$/u', $trimmed, $m)) {
+        $baseName = trim($m[1]);
+    }
+
+    $escaped = preg_quote($baseName, '/');
+    $maxNum = 1;
+
+    foreach ($others as $p) {
+        $pName = trim((string)($p['name'] ?? ''));
+        if (preg_match('/^' . $escaped . '(?:\s+(\d+))?$/iu', $pName, $pm)) {
+            $num = isset($pm[1]) && is_numeric($pm[1]) ? (int)$pm[1] : 1;
+            if ($num >= $maxNum) {
+                $maxNum = $num;
+            }
+        }
+    }
+
+    return $baseName . ' ' . ($maxNum + 1);
+}
+
 // ── Leitura pública (PostgreSQL na VPS + Fallback Cache) ──────────────
 if ($method === 'GET' || $method === 'HEAD') {
     // 1. Consulta o PostgreSQL na VPS (Fonte de Verdade Primária)
@@ -245,6 +298,18 @@ if (trim($raw) !== '') {
 
 switch ($method) {
     case 'POST':
+        $currentCat = readCatalog();
+        $catProducts = $currentCat['products'] ?? [];
+        if (!empty($input['name'])) {
+            $diffName = differentiateProductName((string)$input['name'], $catProducts);
+            if ($diffName !== (string)$input['name']) {
+                $input['name'] = $diffName;
+                $input['slug'] = slugifyProductName($diffName);
+            } elseif (empty($input['slug'])) {
+                $input['slug'] = slugifyProductName($diffName);
+            }
+        }
+
         // Salva primeiro na VPS (PostgreSQL)
         $vps = callVpsApi('POST', '/products', $input, $token);
         if ($vps !== null && isset($vps['product'])) {
@@ -270,6 +335,16 @@ switch ($method) {
         $id = trim((string)($input['id'] ?? $productId));
         if ($id === '') {
             respond(400, 'Informe o id do produto a atualizar.');
+        }
+
+        $currentCat = readCatalog();
+        $catProducts = $currentCat['products'] ?? [];
+        if (!empty($input['name'])) {
+            $diffName = differentiateProductName((string)$input['name'], $catProducts, $id);
+            if ($diffName !== (string)$input['name']) {
+                $input['name'] = $diffName;
+                $input['slug'] = slugifyProductName($diffName);
+            }
         }
 
         // Salva no PostgreSQL na VPS

@@ -920,8 +920,74 @@
     filterProducts();
   };
 
+  // ── Diferenciação Automática de Nomes e Slugs de Produtos ──
+  function adminSlugify(text) {
+    return String(text || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function getDifferentiatedProductName(rawName, excludeId = null) {
+    if (!rawName || typeof rawName !== 'string') return '';
+    const trimmed = rawName.trim();
+    if (!trimmed) return '';
+
+    const others = (allProducts || []).filter(p => !excludeId || String(p.id) !== String(excludeId));
+
+    // Se o nome não colide com nenhum outro produto, mantém como digitado
+    const exactMatch = others.some(p => (p.name || '').trim().toLowerCase() === trimmed.toLowerCase());
+    if (!exactMatch) {
+      return trimmed;
+    }
+
+    // Se já existe colisão exata, extrai a raiz do nome sem o número final
+    const match = trimmed.match(/^(.*?)(?:\s+(\d+))?$/);
+    const baseName = (match && match[1]) ? match[1].trim() : trimmed;
+
+    // Encontra o maior número já atribuído a essa base
+    const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const baseRegex = new RegExp('^' + escapedBase + '(?:\\s+(\\d+))?$', 'i');
+
+    let maxNum = 1;
+    others.forEach(p => {
+      const pName = (p.name || '').trim();
+      const m = pName.match(baseRegex);
+      if (m) {
+        const num = m[1] ? parseInt(m[1], 10) : 1;
+        if (num >= maxNum) {
+          maxNum = num;
+        }
+      }
+    });
+
+    const nextNum = maxNum + 1;
+    return `${baseName} ${nextNum}`;
+  }
+
+  function setupProductNameInput() {
+    const input = document.getElementById('p-name');
+    if (!input || input._differentiatedBound) return;
+    input._differentiatedBound = true;
+
+    input.addEventListener('blur', function () {
+      const val = input.value;
+      const editId = document.getElementById('product-edit-id')?.value || null;
+      const diff = getDifferentiatedProductName(val, editId);
+      if (diff && diff !== val.trim()) {
+        input.value = diff;
+        showToast('✦', 'Nome ajustado', `Nome diferenciado para "${diff}" para evitar duplicidade no catálogo.`);
+      }
+    });
+  }
+
+  window.getDifferentiatedProductName = getDifferentiatedProductName;
+
   // ── Product Modal ──
   window.openProductModal = function (productId = null) {
+    setupProductNameInput();
     editingSizes = [];
     editingColors = [];
     pendingImages = [];
@@ -1166,10 +1232,17 @@
       alert('Algumas fotos não puderam ser enviadas e foram mantidas em base64.\n• ' + uploadWarnings.join('\n• '));
     }
 
+    const rawName = getVal('p-name');
+    const finalName = getDifferentiatedProductName(rawName, id);
+    const finalSlug = adminSlugify(finalName);
+    if (finalName && finalName !== rawName.trim()) {
+      setValue('p-name', finalName);
+    }
+
     const productData = {
       id: productId,
       brand: getVal('p-brand'),
-      name: getVal('p-name'),
+      name: finalName,
       price: getVal('p-price'),
       oldPrice: getVal('p-old-price') || null,
       badge: getVal('p-badge') || null,
@@ -1184,7 +1257,7 @@
       colors: [...editingColors],
       image: storedImages[0] || '',
       images: [...storedImages],
-      slug: (getVal('p-name') || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      slug: finalSlug,
       featured: document.getElementById('p-featured')?.checked || false,
       destaque: document.getElementById('p-destaque')?.checked || false,
     };
@@ -2369,6 +2442,7 @@ window.showConfirm = function (msg, callback) {
     if (event.key === 'nte_orders') refreshOrders();
   });
   document.addEventListener('DOMContentLoaded', () => {
+    setupProductNameInput();
     document.getElementById('p-category')?.addEventListener('change', updateSizeSuggestions);
     document.querySelectorAll('.nav-item').forEach(item => {
       item.setAttribute('role', 'button');

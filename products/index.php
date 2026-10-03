@@ -100,6 +100,16 @@ if ($productQuery !== '') {
         }
     }
 
+    // 4. Exact name match
+    if (!$product) {
+        foreach ($allProducts as $p) {
+            if (isset($p['name']) && strtolower(trim((string)$p['name'])) === $q) {
+                $product = $p;
+                break;
+            }
+        }
+    }
+
     if ($product && is_array($product)) {
         $name = htmlspecialchars($product['name'] ?? 'Produto', ENT_QUOTES, 'UTF-8');
         $brand = htmlspecialchars($product['brand'] ?? 'NT Eleganz', ENT_QUOTES, 'UTF-8');

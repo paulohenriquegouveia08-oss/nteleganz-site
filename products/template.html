@@ -806,6 +806,10 @@
       found = products.find(p => String(p.slug || '').toLowerCase() === q);
       if (found) return found;
 
+      // 4. Exact name match (case-insensitive ou slugificado)
+      found = products.find(p => String(p.name || '').trim().toLowerCase() === q);
+      if (found) return found;
+
       return null;
     }
 
