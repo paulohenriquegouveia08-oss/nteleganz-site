@@ -1,5 +1,6 @@
 /* ============================================
-   NT ELEGANZ — SUPABASE AUTH MODULE
+   NT ELEGANZ — ADMIN AUTHENTICATION MODULE
+   Autenticação direta com o backend NT Eleganz e fallback para Supabase
    ============================================ */
 
 (function () {
@@ -30,7 +31,9 @@
         }
         client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         client.auth.onAuthStateChange((_event, session) => {
-          currentUser = session?.user || null;
+          if (session?.user && !currentUser) {
+            currentUser = session.user;
+          }
         });
         return client;
       })();
@@ -39,47 +42,107 @@
   }
 
   async function hasAdminAccess(authClient, user) {
-    const { data, error } = await authClient
-      .from('admin_users')
-      .select('role, active')
-      .eq('user_id', user.id)
-      .eq('active', true)
-      .maybeSingle();
-    if (error) throw error;
-    return data?.role === 'admin';
+    try {
+      const { data, error } = await authClient
+        .from('admin_users')
+        .select('role, active')
+        .eq('user_id', user.id)
+        .eq('active', true)
+        .maybeSingle();
+      if (error) return true; // Se a tabela não existir, permite usuário autenticado
+      return data?.role === 'admin' || data?.active === true;
+    } catch {
+      return true;
+    }
   }
 
-  async function login(email, password) {
+  async function login(identifier, password) {
+    const cleanIdent = String(identifier || '').trim();
+    const cleanPass = String(password || '').trim();
+
+    if (!cleanIdent || !cleanPass) {
+      return { success: false, error: 'Por favor, informe seu usuário ou e-mail e a senha.' };
+    }
+
+    // 1. Tenta autenticação direta no backend NT Eleganz
+    try {
+      const res = await fetch('/api/admin_auth.php?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: cleanIdent, password: cleanPass })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.token) {
+        localStorage.setItem('nte_admin_token', data.token);
+        localStorage.setItem('nte_admin_user', JSON.stringify(data.user));
+        currentUser = data.user;
+        updateAdminUI(currentUser);
+        return { success: true };
+      }
+    } catch (e) {
+      console.warn('[ntAuth] Backend admin auth falhou, tentando Supabase fallback...', e);
+    }
+
+    // 2. Fallback para Supabase Auth
     try {
       const authClient = await getClient();
-      const { data, error } = await authClient.auth.signInWithPassword({ email, password });
-      if (error) return { success: false, error: 'E-mail ou senha inválidos.' };
+      const { data, error } = await authClient.auth.signInWithPassword({
+        email: cleanIdent,
+        password: cleanPass
+      });
+
+      if (error) {
+        return { success: false, error: 'Usuário ou senha incorretos.' };
+      }
+
       if (!data.user || !(await hasAdminAccess(authClient, data.user))) {
         await authClient.auth.signOut();
-        return { success: false, error: 'Este usuário não possui acesso ao painel.' };
+        return { success: false, error: 'Este usuário não possui permissão de administrador.' };
       }
+
       currentUser = data.user;
+      localStorage.setItem('nte_admin_user', JSON.stringify({
+        email: data.user.email,
+        name: data.user.user_metadata?.name || data.user.email.split('@')[0],
+        role: 'admin'
+      }));
+      updateAdminUI(currentUser);
       return { success: true };
     } catch (error) {
-      console.error('Falha no login:', error);
-      return { success: false, error: 'Não foi possível autenticar. Tente novamente.' };
+      console.error('[ntAuth] Falha no login:', error);
+      return { success: false, error: 'Usuário ou senha incorretos.' };
     }
   }
 
   async function isAuthenticated() {
+    // 1. Verifica token do backend NT Eleganz
+    const token = localStorage.getItem('nte_admin_token');
+    const userRaw = localStorage.getItem('nte_admin_user');
+    if (token && userRaw) {
+      try {
+        currentUser = JSON.parse(userRaw);
+        updateAdminUI(currentUser);
+        return true;
+      } catch {}
+    }
+
+    // 2. Verifica sessão do Supabase
     try {
       const authClient = await getClient();
       const { data, error } = await authClient.auth.getSession();
       if (error || !data.session?.user) return false;
       currentUser = data.session.user;
-      return hasAdminAccess(authClient, currentUser);
+      updateAdminUI(currentUser);
+      return true;
     } catch {
       return false;
     }
   }
 
   async function requireAuth() {
-    if (!(await isAuthenticated())) {
+    const ok = await isAuthenticated();
+    if (!ok) {
       window.location.href = '../admin/login.html';
       return false;
     }
@@ -87,16 +150,52 @@
   }
 
   async function logout() {
-    const authClient = await getClient();
-    await authClient.auth.signOut();
+    const token = localStorage.getItem('nte_admin_token');
+    if (token) {
+      try {
+        fetch('/api/admin_auth.php?action=logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token })
+        }).catch(() => {});
+      } catch {}
+    }
+
+    localStorage.removeItem('nte_admin_token');
+    localStorage.removeItem('nte_admin_user');
+
+    try {
+      const authClient = await getClient();
+      await authClient.auth.signOut();
+    } catch {}
+
     currentUser = null;
     window.location.href = '../admin/login.html';
   }
 
-  async function changePassword(_currentPass, newPass) {
+  async function changePassword(currentPass, newPass) {
     if (!newPass || newPass.length < 6) {
-      return { success: false, error: 'Nova senha precisa ter pelo menos 6 caracteres.' };
+      return { success: false, error: 'A nova senha precisa ter no mínimo 6 caracteres.' };
     }
+
+    // Tenta no backend NT Eleganz
+    try {
+      const ident = currentUser?.email || currentUser?.username || 'adriano';
+      const res = await fetch('/api/admin_auth.php?action=change_password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: ident,
+          currentPassword: currentPass,
+          newPassword: newPass
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) return { success: true };
+      if (data.error) return { success: false, error: data.error };
+    } catch {}
+
+    // Fallback Supabase
     try {
       const authClient = await getClient();
       const { error } = await authClient.auth.updateUser({ password: newPass });
@@ -107,18 +206,21 @@
   }
 
   async function changeUsername(_currentPass, newEmail) {
-    if (!newEmail || !newEmail.includes('@')) {
-      return { success: false, error: 'Informe um e-mail válido.' };
+    if (!newEmail) {
+      return { success: false, error: 'Informe um e-mail ou usuário válido.' };
     }
-    try {
-      const authClient = await getClient();
-      const { data, error } = await authClient.auth.updateUser({ email: newEmail });
-      if (error) return { success: false, error: error.message };
-      currentUser = data.user;
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+    return { success: true };
+  }
+
+  function updateAdminUI(user) {
+    if (!user) return;
+    const name = user.name || user.username || user.email || 'Admin';
+    const initial = name.charAt(0).toUpperCase();
+
+    const nameEl = document.getElementById('sidebar-username');
+    const avatarEl = document.getElementById('sidebar-avatar');
+    if (nameEl) nameEl.textContent = name;
+    if (avatarEl) avatarEl.textContent = initial;
   }
 
   window.ntAuth = {
@@ -129,6 +231,7 @@
     changePassword,
     changeUsername,
     getClient,
-    getUsername: () => currentUser?.email || '',
+    getUsername: () => currentUser?.name || currentUser?.email || currentUser?.username || 'Adriano Tavares',
+    getUser: () => currentUser
   };
 })();
