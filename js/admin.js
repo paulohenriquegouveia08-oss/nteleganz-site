@@ -274,7 +274,7 @@
       else await window.ntDB.settings.add({ id: FAQ_ID, items });
       faqItems = items;
       renderFaqEditor();
-      showToast('✓', 'FAQ atualizado', `${items.length} pergunta${items.length === 1 ? '' : 's'} publicada${items.length === 1 ? '' : 's'}.`);
+      showToast('check', 'FAQ atualizado', `${items.length} pergunta${items.length === 1 ? '' : 's'} publicada${items.length === 1 ? '' : 's'}.`);
     } catch (error) {
       showToast('!', 'Não foi possível salvar o FAQ', error.message);
     } finally {
@@ -466,12 +466,12 @@
       knownLeadIds = ids;
       updateLeadNotifications();
       renderLeadsTable();
-      if (leadsInitialized && newLeads.length) showToast('🔔', `${newLeads.length} novo${newLeads.length > 1 ? 's' : ''} lead${newLeads.length > 1 ? 's' : ''}`, leadInterest(newLeads[0]));
-      if (manual) showToast('↻', 'Leads atualizados', `${leads.length} contato(s) registrado(s)`);
+      if (leadsInitialized && newLeads.length) showToast('bell', `${newLeads.length} novo${newLeads.length > 1 ? 's' : ''} lead${newLeads.length > 1 ? 's' : ''}`, leadInterest(newLeads[0]));
+      if (manual) showToast('info', 'Leads atualizados', `${leads.length} contato(s) registrado(s)`);
       leadsInitialized = true;
     } catch (error) {
       console.warn('Não foi possível carregar os leads:', error);
-      if (manual) showToast('!', 'Falha ao atualizar leads', 'Verifique a conexão do banco de dados.');
+      if (manual) showToast('error', 'Falha ao atualizar leads', 'Verifique a conexão do banco de dados.');
     }
   };
 
@@ -483,8 +483,8 @@
       await window.ntDB.leads.update(id, { status });
       lead.status = status;
       renderLeadsTable();
-      showToast('✓', 'Lead atualizado', status === 'em_atendimento' ? 'Em atendimento' : status);
-    } catch (error) { showToast('!', 'Não foi possível atualizar o lead', error.message); }
+      showToast('check', 'Lead atualizado', status === 'em_atendimento' ? 'Em atendimento' : status);
+    } catch (error) { showToast('error', 'Não foi possível atualizar o lead', error.message); }
   };
 
   // ══════════════════════════════════════════
@@ -557,7 +557,7 @@
         ? `<img src="${escHtml(thumb)}" alt="" style="width:36px; height:36px; border-radius:6px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111; cursor:pointer;" onclick="window.open('${escHtml(thumb)}', '_blank')" onerror="this.onerror=null; this.src='../assets/images/logo.png'; this.style.opacity='0.4';" />`
         : `<div style="width:36px; height:36px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); display:flex; align-items:center; justify-content:center; color:var(--text-muted);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
       return `
-        <tr>
+        <tr onclick="openOrderModal('${escHtml(o.id)}')" style="cursor:pointer;" title="Clique para ver os detalhes do pedido">
           <td><span class="badge badge-gold" style="font-family:monospace; font-size:11px; font-weight:700;">${code}</span></td>
           <td>${thumbHtml}</td>
           <td style="color:var(--text-primary); font-weight:500;">${escHtml(o.client || '—')}</td>
@@ -873,8 +873,8 @@
         </td>
         <td>${escHtml(categoryLabel(productCategory(p)))}</td>
         <td>
-          ${p.featured ? '<span class="badge badge-gold" title="Mais Vendidos">🏆 Mais</span> ' : ''}
-          ${p.destaque ? '<span class="badge badge-gold" title="Destaque">✨ Dest.</span>' : ''}
+          ${p.featured ? '<span class="badge badge-gold" title="Mais Vendidos"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:2px;"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>Mais</span> ' : ''}
+          ${p.destaque ? '<span class="badge badge-gold" title="Destaque"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Dest.</span>' : ''}
           ${!p.featured && !p.destaque ? '<span style="color:var(--text-muted);font-size:11px;">—</span>' : ''}
         </td>
         <td>
@@ -983,7 +983,7 @@
       const diff = getDifferentiatedProductName(val, editId);
       if (diff && diff !== val.trim()) {
         input.value = diff;
-        showToast('✦', 'Nome ajustado', `Nome diferenciado para "${diff}" para evitar duplicidade no catálogo.`);
+        showToast('info', 'Nome ajustado', `Nome diferenciado para "${diff}" para evitar duplicidade no catálogo.`);
       }
     });
   }
@@ -1299,7 +1299,7 @@
         renderProductsTable();
         console.warn('Produto salvo, mas a lista não pôde ser sincronizada:', syncError);
       }
-      showToast('✦', id ? 'Produto atualizado!' : 'Produto adicionado!', productData.name);
+      showToast('check', id ? 'Produto atualizado!' : 'Produto adicionado!', productData.name);
     } catch (e) {
       alert('Erro ao salvar produto: ' + e.message);
     } finally {
@@ -1320,7 +1320,7 @@
       allProducts = allProducts.filter(product => product.id !== id);
       renderProductsTable();
       setText('kpi-products', allProducts.filter(product => product.active !== false).length);
-      showToast('✓', 'Produto excluído', p.name || '');
+      showToast('trash', 'Produto excluído', p.name || '');
     } catch (e) {
       console.error('Falha ao excluir produto:', e);
       alert('Não foi possível excluir: ' + e.message);
@@ -1589,7 +1589,7 @@
       }
 
       return `
-      <tr>
+      <tr onclick="openOrderModal('${escHtml(o.id)}')" style="cursor:pointer;" title="Clique para ver os detalhes do pedido">
         <td>
           <span class="badge badge-gold" style="font-family:monospace; font-size:11px; font-weight:700; letter-spacing:0.05em;">${code}</span>
         </td>
@@ -1603,12 +1603,11 @@
             const rawPhone = o.phone || (o.raw_data && o.raw_data.phone) || '';
             const digits = String(rawPhone).replace(/\D/g, '');
             if (!digits) return '<span style="font-size:11px; color:var(--text-muted); opacity:0.6;">Sem telefone</span>';
-            const wppNum = digits.startsWith('55') ? digits : ('55' + digits);
             return `
-              <a href="https://wa.me/${wppNum}" target="_blank" style="background:rgba(37,211,102,0.12); color:#25d366; border:1px solid rgba(37,211,102,0.3); font-size:11px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; margin-top:2px;" title="Conversar no WhatsApp">
+              <button type="button" onclick="event.stopPropagation(); openWhatsAppModal({ client: '${escHtml(o.client || 'Cliente')}', phone: '${escHtml(rawPhone)}', orderCode: '${escHtml(o.code || '')}', items: ${JSON.stringify(o.items || [])}, status: '${escHtml(o.status || '')}', value: '${escHtml(o.value || '')}', orderId: '${escHtml(o.id)}' })" style="background:rgba(37,211,102,0.12); color:#168a3f; border:1px solid rgba(37,211,102,0.3); font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; margin-top:2px; cursor:pointer;" title="Opções de mensagem no WhatsApp">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                 <span>${escHtml(rawPhone)}</span>
-              </a>
+              </button>
             `;
           })()}
         </td>
@@ -1616,7 +1615,7 @@
         <td>${escHtml([o.size, o.color].filter(Boolean).join(' / ') || '—')}</td>
         <td style="color:var(--gold, #c9a84c); font-weight:600;">${escHtml(o.value || '—')}</td>
         <td>
-          <select class="admin-select" style="font-size:11px; padding:4px 24px 4px 6px;" onchange="updateOrderStatus('${o.id}', this.value)">
+          <select class="admin-select" style="font-size:11px; padding:4px 24px 4px 6px;" onclick="event.stopPropagation()" onchange="updateOrderStatus('${o.id}', this.value)">
             ${['novo','confirmado','enviado','entregue','cancelado'].map(s =>
               `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`
             ).join('')}
@@ -1641,92 +1640,27 @@
 
   window.updateOrderStatus = async function (id, status) {
     await window.ntDB.orders.update(id, { status });
-    const o = allOrders.find(o => o.id === id);
+    const o = allOrders.find(o => String(o.id) === String(id));
     if (o) o.status = status;
-    showToast('✓', 'Status atualizado', status);
+    showToast('check', 'Status atualizado', status);
   };
 
-  // ── Order Modal (Dynamic - bypasses all CSS conflicts) ──
-window.openOrderModal = function (orderId = null) {
-    // Remove any existing dynamic modal
-    const existing = document.getElementById('dynamic-order-modal');
-    if (existing) existing.remove();
-    
-    document.getElementById('order-edit-id').value = orderId || '';
-    
-    // Build modal dynamically (bypass all CSS)
-    const overlay = document.createElement('div');
-    overlay.id = 'dynamic-order-modal';
-    overlay.style.cssText = `
-      position: fixed !important;
-      inset: 0 !important;
-      z-index: 99999 !important;
-      background: rgba(0, 0, 0, 0.55) !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      padding: clamp(16px, 4vw, 24px) !important;
-      font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
-      animation: fadeIn 0.2s ease-out !important;
-    `;
-    overlay.onclick = (e) => { if (e.target === overlay) closeDynamicOrderModal(); };
-    
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-      background: var(--bg-surface, #0f0f0f) !important;
-      border: 1px solid var(--border, rgba(201, 168, 76, 0.3)) !important;
-      border-radius: 16px !important;
-      max-width: min(720px, 95vw) !important;
-      width: 100% !important;
-      max-height: min(90vh, 820px) !important;
-      overflow: hidden !important;
-      box-shadow: 
-        0 4px 24px rgba(0, 0, 0, 0.4),
-        0 0 0 1px rgba(201, 168, 76, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-      color: var(--text-primary, #f2efe9) !important;
-      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    `;
-    
-    // Header
-    const header = document.createElement('div');
-    header.style.cssText = `
-      display: flex !important;
-      align-items: center !important;
-      justify-content: space-between !important;
-      padding: 18px 24px !important;
-      border-bottom: 1px solid var(--border, rgba(201, 168, 76, 0.2)) !important;
-      background: rgba(201, 168, 76, 0.03) !important;
-    `;
-    header.innerHTML = `
-      <h3 style="margin:0;font-size:1.05rem;font-weight:600;color:var(--text-primary, #f2efe9);letter-spacing:0.01em;">${orderId ? 'Editar Pedido' : 'Registrar Pedido'}</h3>
-      <button onclick="closeDynamicOrderModal()" style="
-        width: 36px !important;
-        height: 36px !important;
-        border: none !important;
-        border-radius: 10px !important;
-        background: var(--bg-hover, rgba(255,255,255,0.04)) !important;
-        color: var(--text-muted, #888) !important;
-        font-size: 1.35rem !important;
-        cursor: pointer !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transition: all 0.15s ease !important;
-      " onmouseover="this.style.background='var(--bg-hover,rgba(255,255,255,0.08))'" onmouseout="this.style.background='var(--bg-hover,rgba(255,255,255,0.04))'">×</button>
-    `;
-    
-    // Body
-    const body = document.createElement('div');
-    body.style.cssText = `padding: 24px !important; max-height: 65vh !important; overflow-y: auto !important; background: var(--bg-surface, #0f0f0f) !important;`;
-    
-    // Build form
+  // ── Order Modal ──
+  window.openOrderModal = function (orderId = null) {
+    const modal = document.getElementById('order-modal');
+    const title = document.getElementById('order-modal-title');
+    const body = document.getElementById('order-modal-body');
+    if (!modal || !body) return;
+
     let orderData = {};
-    if (orderId) {
-      const o = allOrders.find(o => o.id === orderId);
-      if (o) orderData = o;
+    if (orderId !== null && orderId !== undefined && orderId !== '') {
+      const found = allOrders.find(o => String(o.id) === String(orderId));
+      if (found) orderData = found;
+    }
+
+    const code = orderData.code || (orderId ? ('#NTE-' + String(orderId).slice(-4).toUpperCase()) : '');
+    if (title) {
+      title.textContent = orderId ? `Detalhes do Pedido ${code}` : 'Registrar Pedido';
     }
 
     const productsHtml = allProducts.filter(p => p.active !== false).map(p =>
@@ -1734,19 +1668,17 @@ window.openOrderModal = function (orderId = null) {
     ).join('');
 
     const orderThumb = getOrderThumbnail(orderData);
-    const orderCodeBadge = orderData.code
-      ? `<span class="badge badge-gold" style="font-family:monospace;font-size:13px;padding:4px 10px;font-weight:700;">${escHtml(orderData.code)}</span>`
-      : (orderId ? `<span class="badge badge-gold" style="font-family:monospace;font-size:13px;padding:4px 10px;font-weight:700;">#NTE-${String(orderId).slice(-4).toUpperCase()}</span>` : '');
+    const cleanPhoneDigits = String(orderData.phone || (orderData.raw_data && orderData.raw_data.phone) || '').replace(/\D/g, '');
 
-    const headerPreview = (orderCodeBadge || orderThumb) ? `
-      <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px; padding:12px 14px; border-radius:10px; background:rgba(201,168,76,0.06); border:1px solid rgba(201,168,76,0.2);">
-        ${orderThumb ? `<img src="${escHtml(orderThumb)}" alt="" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111; cursor:pointer;" onclick="window.open('${escHtml(orderThumb)}', '_blank')" title="Clique para ver imagem">` : ''}
+    const headerPreview = (code || orderThumb) ? `
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px; padding:14px 16px; border-radius:12px; background:var(--bg-hover, #f8f8f8); border:1px solid var(--border);">
+        ${orderThumb ? `<img src="${escHtml(orderThumb)}" alt="" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid var(--border); background:#f4f4f5; cursor:pointer;" onclick="window.open('${escHtml(orderThumb)}', '_blank')" title="Clique para ver imagem">` : ''}
         <div style="flex:1;">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            ${orderCodeBadge}
+            ${code ? `<span class="badge badge-gold" style="font-family:monospace; font-size:12px; font-weight:700;">${escHtml(code)}</span>` : ''}
             <span style="font-size:12px; color:var(--text-muted);">${orderData.createdAt ? fmt.date(orderData.createdAt) : ''}</span>
-            ${orderData.source === 'site' ? '<span class="badge badge-gold" style="font-size:10px;">🌐 Site</span>' : ''}
-            ${orderData.code ? `<a href="/order/${encodeURIComponent(orderData.code.replace('#',''))}" target="_blank" class="badge" style="background:rgba(255,255,255,0.08);color:var(--text-primary);text-decoration:none;font-size:11px;padding:3px 8px;border:1px solid rgba(255,255,255,0.15);border-radius:6px;display:inline-flex;align-items:center;gap:4px;" title="Abrir página detalhada do pedido">🔗 Ver no Site</a>` : ''}
+            ${orderData.source === 'site' ? '<span class="badge badge-gold" style="font-size:10px;">Site</span>' : ''}
+            ${orderData.code ? `<a href="/order/${encodeURIComponent(orderData.code.replace('#',''))}" target="_blank" class="badge" style="background:transparent; color:var(--text-primary); text-decoration:none; font-size:11px; padding:2px 8px; border:1px solid var(--border); border-radius:6px; display:inline-flex; align-items:center; gap:4px;" title="Abrir página detalhada do pedido"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Ver no Site</a>` : ''}
           </div>
           <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-top:4px;">${escHtml(orderData.productName || 'Detalhes do Pedido')}</div>
         </div>
@@ -1754,185 +1686,129 @@ window.openOrderModal = function (orderId = null) {
     ` : '';
 
     const itemsPreview = (Array.isArray(orderData.items) && orderData.items.length > 0) ? `
-      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border,rgba(201,168,76,0.2));border-radius:12px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:.8rem;font-weight:600;color:var(--gold,#c9a84c);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Itens do Pedido (${orderData.items.length})</div>
-        <div style="display:grid;gap:12px;">
+      <div style="background:var(--bg-hover, #f8f8f8); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:16px;">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:12px;">Itens do Pedido (${orderData.items.length})</div>
+        <div style="display:grid; gap:10px;">
           ${orderData.items.map((it, idx) => `
-            <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:${idx < orderData.items.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none'};">
-              ${it.image ? `<img src="${escHtml(it.image)}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid rgba(201,168,76,0.3);background:#111;cursor:pointer;" onclick="window.open('${escHtml(it.image)}', '_blank')" title="Clique para abrir foto em alta resolução">` : `<div style="width:48px;height:48px;border-radius:8px;background:#222;display:flex;align-items:center;justify-content:center;color:#666;">🖼️</div>`}
+            <div style="display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:${idx < orderData.items.length - 1 ? '1px solid var(--border)' : 'none'};">
+              ${it.image ? `<img src="${escHtml(it.image)}" style="width:44px; height:44px; border-radius:6px; object-fit:cover; border:1px solid var(--border); background:#f4f4f5; cursor:pointer;" onclick="window.open('${escHtml(it.image)}', '_blank')">` : `<div style="width:44px; height:44px; border-radius:6px; background:var(--bg-surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-muted);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>`}
               <div style="flex:1;">
-                <div style="font-weight:600;font-size:.9rem;color:var(--text-primary);">${escHtml(it.brand ? `${it.brand} — ` : '')}${escHtml(it.name || 'Produto')}</div>
-                <div style="font-size:.8rem;color:var(--text-muted);margin-top:2px;">
+                <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${escHtml(it.brand ? it.brand + ' — ' : '')}${escHtml(it.name || 'Produto')}</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
                   ${it.size ? `Tam: <strong>${escHtml(it.size)}</strong> ` : ''}
                   ${it.color ? `| Cor: <strong>${escHtml(it.color)}</strong> ` : ''}
                   | Qtd: <strong>${escHtml(String(it.qty || 1))}</strong>
                 </div>
               </div>
-              <div style="font-weight:700;color:var(--gold,#c9a84c);font-size:.95rem;">${escHtml(it.price || '')}</div>
+              <div style="font-weight:700; color:var(--text-primary); font-size:13px;">${escHtml(it.price || '')}</div>
             </div>
           `).join('')}
         </div>
       </div>
     ` : '';
-    
-    const cleanPhoneDigits = String(orderData.phone || '').replace(/\D/g, '');
-    const clientFirstName = (orderData.client || '').trim().split(' ')[0] || 'Cliente';
-    const itemsListText = Array.isArray(orderData.items) && orderData.items.length > 0
-      ? orderData.items.map(it => `${it.brand ? `${it.brand} — ` : ''}${it.name || 'peça'}${it.size ? ` (Tam: ${it.size})` : ''}`).join(', ')
-      : (orderData.productName || 'sua peça');
-
-    const followUpMessage = `Olá, ${clientFirstName}! Tudo bem?\n\nAqui é da equipe da NT Eleganz. Notamos que você iniciou o pedido ${orderData.code || ''} em nosso site com: ${itemsListText}.\n\nComo nossas peças são exclusivas e temos poucas unidades em estoque, separamos seu item com prioridade especial.\n\nGostaria de dar continuidade ao pedido ou ficou com alguma dúvida sobre o tamanho, caimento, frete ou formas de pagamento? Estamos à sua total disposição!`;
-
-    const encodedFollowUp = encodeURIComponent(followUpMessage);
-    const wppCountryPhone = cleanPhoneDigits.startsWith('55') ? cleanPhoneDigits : `55${cleanPhoneDigits}`;
-    const followUpUrl = `https://wa.me/${wppCountryPhone}?text=${encodedFollowUp}`;
 
     const followUpCard = cleanPhoneDigits.length >= 8 ? `
-      <div style="background:linear-gradient(135deg, rgba(37,211,102,0.08), rgba(201,168,76,0.06)); border:1px solid rgba(37,211,102,0.3); border-radius:12px; padding:16px; margin:4px 0 6px 0;">
-        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-          <div style="font-size:0.9rem; font-weight:700; color:#25d366; display:flex; align-items:center; gap:8px;">
-            <i class="fas fa-bell"></i> Pedido não chegou no WhatsApp? Faça o follow-up do cliente
+      <div style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3); border-radius:12px; padding:14px 16px; margin:4px 0 16px 0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <div style="font-size:13px; font-weight:700; color:#168a3f; display:flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+            <span>Atendimento & Follow-up no WhatsApp</span>
           </div>
-          ${orderData.lgpdConsent || (orderData.raw_data && orderData.raw_data.lgpdConsent) ? '<span style="font-size:10px; background:rgba(37,211,102,0.15); color:#25d366; padding:2px 8px; border-radius:4px; font-weight:600;"><i class="fas fa-shield-alt"></i> LGPD Aceito</span>' : ''}
+          ${orderData.lgpdConsent || (orderData.raw_data && orderData.raw_data.lgpdConsent) ? '<span style="font-size:11px; background:rgba(22,163,74,0.1); color:#16a34a; padding:2px 8px; border-radius:4px; font-weight:600;">LGPD Aceito</span>' : ''}
         </div>
-        <div style="font-size:0.83rem; color:var(--text-muted, #aaa); line-height:1.45; margin-bottom:12px;">
-          O cliente gerou este pedido no site mas pode não ter enviado a mensagem no WhatsApp. Envie uma mensagem personalizada de recuperação com 1 clique para não perder a venda:
+        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
+          Converse diretamente com o cliente escolhendo mensagens de confirmação, recuperação ou acompanhamento de envio:
         </div>
-        <div style="background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px; font-size:0.82rem; color:#e0ded9; line-height:1.45; margin-bottom:12px; white-space:pre-wrap; max-height:120px; overflow-y:auto;">${escHtml(followUpMessage)}</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="${followUpUrl}" target="_blank" style="flex:1; min-width:200px; padding:11px 16px; background:#25d366; color:#05260f; text-decoration:none; font-weight:700; font-size:0.88rem; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 10px rgba(37,211,102,0.25); transition:background 0.15s;" onmouseover="this.style.background='#20ba59'" onmouseout="this.style.background='#25d366'">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-            <span>Fazer Follow-up no WhatsApp</span>
-          </a>
-          <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodedFollowUp}')); if(window.showToast) showToast('✓', 'Mensagem copiada!', 'Cole na conversa com o cliente.');" style="padding:11px 16px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#f2efe9; border-radius:8px; font-size:0.85rem; font-weight:600; cursor:pointer; transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
-            <i class="fas fa-copy"></i> Copiar Mensagem
+          <button type="button" class="btn btn-sm" onclick="openWhatsAppModal({ client: '${escHtml(orderData.client || '')}', phone: '${escHtml(orderData.phone || '')}', orderCode: '${escHtml(orderData.code || '')}', items: ${JSON.stringify(orderData.items || [])}, status: '${escHtml(orderData.status || '')}', value: '${escHtml(orderData.value || '')}', orderId: '${escHtml(orderData.id || '')}' })" style="background:#25d366; color:#05260f; font-weight:700; display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+            <span>Opções de Mensagem WhatsApp</span>
           </button>
         </div>
       </div>
     ` : '';
-    
+
     body.innerHTML = `
       <input type="hidden" id="order-edit-id" value="${orderId || ''}">
-      <div style="display:grid;gap:16px;">
+      <div style="display:grid; gap:16px;">
         ${headerPreview}
         ${itemsPreview}
-        <div>
-          <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Nome do Cliente *</label>
-          <input type="text" id="o-client" value="${escHtml(orderData.client || '')}" placeholder="João Silva" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">WhatsApp do Cliente</label>
-            <input type="text" id="o-phone" value="${escHtml(orderData.phone || '')}" placeholder="5511999999999" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
-          </div>
-          <div>
-            <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">E-mail do Cliente</label>
-            <input type="email" id="o-email" value="${escHtml(orderData.email || (orderData.raw_data && orderData.raw_data.email) || '')}" placeholder="cliente@email.com" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
-          </div>
-        </div>
         ${followUpCard}
-        <div>
-          <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Produto *</label>
-          <select id="o-product" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;cursor:pointer;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">${productsHtml}</select>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-          <div>
-            <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Tamanho</label>
-            <input type="text" id="o-size" value="${escHtml(orderData.size || '')}" placeholder="M" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
+        <div class="form-grid">
+          <div class="form-group form-col-full">
+            <label>Nome do Cliente *</label>
+            <input type="text" class="form-control" id="o-client" value="${escHtml(orderData.client || '')}" placeholder="João Silva" required>
           </div>
-          <div>
-            <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Cor</label>
-            <input type="text" id="o-color" value="${escHtml(orderData.color || '')}" placeholder="Preto" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
+          <div class="form-group">
+            <label>WhatsApp do Cliente</label>
+            <input type="text" class="form-control" id="o-phone" value="${escHtml(orderData.phone || '')}" placeholder="5511999999999">
           </div>
-        </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Valor (R$) *</label>
-          <input type="text" id="o-value" value="${escHtml((orderData.value || '').replace('R$ ', ''))}" placeholder="649,00" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
-        </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Status</label>
-          <select id="o-status" style="width:100%;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;cursor:pointer;transition:border-color 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">
-            <option value="novo" ${orderData.status === 'novo' ? 'selected' : ''}>Novo</option>
-            <option value="confirmado" ${orderData.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
-            <option value="enviado" ${orderData.status === 'enviado' ? 'selected' : ''}>Enviado</option>
-            <option value="entregue" ${orderData.status === 'entregue' ? 'selected' : ''}>Entregue</option>
-            <option value="cancelado" ${orderData.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-          </select>
-        </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-size:.8rem;font-weight:500;color:var(--text-muted, #888);text-transform:uppercase;letter-spacing:0.05em;">Observações</label>
-          <textarea id="o-notes" placeholder="Notas sobre o pedido..." style="width:100%;min-height:100px;padding:12px 14px;border:1px solid var(--border, rgba(201,168,76,0.2));border-radius:10px;background:var(--bg-input, #0a0a0a);color:var(--text-primary, #f2efe9);font-size:.95rem;outline:none;resize:vertical;transition:border-color 0.15s, box-shadow 0.15s;line-height:1.5;font-family:inherit;" onfocus="this.style.borderColor='var(--gold, #c9a84c)';this.style.boxShadow='0 0 0 3px rgba(201,168,76,0.15)'" onblur="this.style.borderColor='var(--border, rgba(201,168,76,0.2))';this.style.boxShadow='none'">${escHtml(orderData.notes || '')}</textarea>
+          <div class="form-group">
+            <label>E-mail do Cliente</label>
+            <input type="email" class="form-control" id="o-email" value="${escHtml(orderData.email || (orderData.raw_data && orderData.raw_data.email) || '')}" placeholder="cliente@email.com">
+          </div>
+          <div class="form-group form-col-full">
+            <label>Produto *</label>
+            <select class="form-control" id="o-product">${productsHtml}</select>
+          </div>
+          <div class="form-group">
+            <label>Tamanho</label>
+            <input type="text" class="form-control" id="o-size" value="${escHtml(orderData.size || '')}" placeholder="M">
+          </div>
+          <div class="form-group">
+            <label>Cor</label>
+            <input type="text" class="form-control" id="o-color" value="${escHtml(orderData.color || '')}" placeholder="Preto">
+          </div>
+          <div class="form-group">
+            <label>Valor (R$) *</label>
+            <input type="text" class="form-control" id="o-value" value="${escHtml((orderData.value || '').replace('R$ ', ''))}" placeholder="649,00" required>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" id="o-status">
+              <option value="novo" ${orderData.status === 'novo' ? 'selected' : ''}>Novo</option>
+              <option value="confirmado" ${orderData.status === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+              <option value="enviado" ${orderData.status === 'enviado' ? 'selected' : ''}>Enviado</option>
+              <option value="entregue" ${orderData.status === 'entregue' ? 'selected' : ''}>Entregue</option>
+              <option value="cancelado" ${orderData.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            </select>
+          </div>
+          <div class="form-group form-col-full">
+            <label>Observações</label>
+            <textarea class="form-control" id="o-notes" placeholder="Notas sobre o pedido...">${escHtml(orderData.notes || '')}</textarea>
+          </div>
         </div>
       </div>
     `;
-    
-    // Footer
-    const footer = document.createElement('div');
-    footer.style.cssText = `
-      display:flex !important; justify-content:flex-end !important; gap:12px !important;
-      padding:18px 24px !important; border-top:1px solid var(--border, rgba(201,168,76,0.2)) !important;
-      background: rgba(201, 168, 76, 0.03) !important;
-    `;
-    footer.innerHTML = `
-      <button onclick="closeDynamicOrderModal()" style="
-        padding:12px 24px !important;
-        border:1px solid rgba(201,168,76,0.2) !important;
-        border-radius:10px !important;
-        background:transparent !important;
-        color:#bbb !important;
-        cursor:pointer !important;
-        font-size:.9rem !important;
-        font-weight:500 !important;
-        transition:all 0.15s ease !important;
-      " onmouseover="this.style.borderColor='#c9a84c';this.style.color='#c9a84c'" onmouseout="this.style.borderColor='rgba(201,168,76,0.2)';this.style.color='#bbb'">Cancelar</button>
-      <button onclick="saveDynamicOrder()" style="
-        padding:12px 24px !important;
-        border:none !important;
-        border-radius:10px !important;
-        background:#c9a84c !important;
-        color:#0f0f0f !important;
-        font-weight:600 !important;
-        cursor:pointer !important;
-        font-size:.9rem !important;
-        box-shadow:0 2px 8px rgba(201,168,76,0.3) !important;
-        transition:background-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease !important;
-      " onmouseover="this.style.backgroundColor='#b8963e';this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 16px rgba(201,168,76,0.4)'" onmouseout="this.style.backgroundColor='#c9a84c';this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(201,168,76,0.3)'">Salvar Pedido</button>
-    `;
-    
-    modal.appendChild(header);
-    modal.appendChild(body);
-    modal.appendChild(footer);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    
+
     // Auto-fill value on product select
-    setTimeout(() => {
-      const sel = document.getElementById('o-product');
-      if (sel) {
-        sel.onchange = () => {
-          const opt = sel.selectedOptions[0];
-          if (opt && opt.dataset.price) {
-            document.getElementById('o-value').value = opt.dataset.price.replace('R$ ', '');
-          }
-        };
-        if (orderData.productId) {
-          sel.value = orderData.productId;
-          const opt = sel.selectedOptions[0];
-          if (opt && opt.dataset.price) {
-            document.getElementById('o-value').value = opt.dataset.price.replace('R$ ', '');
-          }
+    const sel = document.getElementById('o-product');
+    if (sel) {
+      sel.onchange = () => {
+        const opt = sel.selectedOptions[0];
+        if (opt && opt.dataset.price && !orderId) {
+          document.getElementById('o-value').value = opt.dataset.price.replace('R$ ', '');
         }
+      };
+      if (orderData.productId) {
+        sel.value = orderData.productId;
       }
-    }, 0);
+    }
+
+    modal.classList.add('open');
   };
 
-  window.closeDynamicOrderModal = function () {
-    const modal = document.getElementById('dynamic-order-modal');
-    if (modal) modal.remove();
+  window.closeOrderModal = function () {
+    const modal = document.getElementById('order-modal');
+    if (modal) modal.classList.remove('open');
   };
 
-  window.saveDynamicOrder = async function () {
-    const id = document.getElementById('order-edit-id').value;
+  window.editOrder = function (id) {
+    openOrderModal(id);
+  };
+
+  window.saveOrder = async function () {
+    const id = document.getElementById('order-edit-id')?.value;
     const sel = document.getElementById('o-product');
     const opt = sel?.selectedOptions[0];
 
@@ -1958,68 +1834,12 @@ window.openOrderModal = function (orderId = null) {
 
     try {
       if (id) {
-        const existing = allOrders.find(o => o.id === id) || {};
+        const existing = allOrders.find(o => String(o.id) === String(id)) || {};
         const merged = { ...existing, ...orderData };
         if (existing.imageUrl && !orderData.imageUrl) merged.imageUrl = existing.imageUrl;
         await window.ntDB.orders.update(id, merged);
-        const idx = allOrders.findIndex(o => o.id === id);
+        const idx = allOrders.findIndex(o => String(o.id) === String(id));
         if (idx !== -1) allOrders[idx] = { ...allOrders[idx], ...merged };
-      } else {
-        const newO = await window.ntDB.orders.add(orderData);
-        allOrders.push(newO);
-      }
-
-      closeDynamicOrderModal();
-      renderOrdersTable();
-      showToast('📦', id ? 'Pedido atualizado!' : 'Pedido registrado!', orderData.client);
-    } catch (e) {
-      alert('Erro ao salvar pedido: ' + e.message);
-    }
-  };
-
-  window.closeOrderModal = function () {
-    const modal = document.getElementById('order-modal');
-    if (modal) {
-      modal.classList.remove('open');
-      // Clear nuclear inline styles
-      modal.style.cssText = '';
-      document.body.style.removeProperty('opacity');
-      document.body.style.removeProperty('visibility');
-    }
-  };
-
-  window.editOrder = function (id) {
-    openOrderModal(id);
-  };
-
-  window.saveOrder = async function () {
-    const id = document.getElementById('order-edit-id').value;
-    const sel = document.getElementById('o-product');
-    const opt = sel.selectedOptions[0];
-
-    const orderData = {
-      client: getVal('o-client'),
-      phone: getVal('o-phone'),
-      productId: sel.value,
-      productName: opt?.dataset.name || '',
-      productBrand: opt?.dataset.brand || '',
-      size: getVal('o-size'),
-      color: getVal('o-color'),
-      value: getVal('o-value'),
-      status: getVal('o-status'),
-      notes: getVal('o-notes'),
-    };
-
-    if (!orderData.client || !orderData.value) {
-      alert('Preencha Nome do Cliente e Valor.');
-      return;
-    }
-
-    try {
-      if (id) {
-        await window.ntDB.orders.update(id, orderData);
-        const idx = allOrders.findIndex(o => o.id === id);
-        if (idx !== -1) allOrders[idx] = { ...allOrders[idx], ...orderData };
       } else {
         const newO = await window.ntDB.orders.add(orderData);
         allOrders.push(newO);
@@ -2027,30 +1847,210 @@ window.openOrderModal = function (orderId = null) {
 
       closeOrderModal();
       renderOrdersTable();
-      showToast('📦', id ? 'Pedido atualizado!' : 'Pedido registrado!', orderData.client);
+      showToast('box', id ? 'Pedido atualizado!' : 'Pedido registrado!', orderData.client);
     } catch (e) {
       alert('Erro ao salvar pedido: ' + e.message);
     }
   };
 
   window.confirmDeleteOrder = function (id) {
-    const o = allOrders.find(o => o.id === id);
+    const o = allOrders.find(o => String(o.id) === String(id));
     if (!o) {
-      showToast('!', 'Pedido não encontrado', 'Recarregue a página e tente novamente.');
+      showToast('error', 'Pedido não encontrado', 'Recarregue a página e tente novamente.');
       return;
     }
     showConfirm(`Excluir pedido de "${o.client || ''}"?`, async () => {
       try {
         await window.ntDB.orders.delete(id);
-        allOrders = allOrders.filter(o => o.id !== id);
+        allOrders = allOrders.filter(o => String(o.id) !== String(id));
         renderOrdersTable();
-        showToast('🗑️', 'Pedido excluído', o.client || '');
+        showToast('trash', 'Pedido excluído', o.client || '');
       } catch (e) {
         console.error('Falha ao excluir o pedido:', e);
-        showToast('✘', 'Falha ao excluir', e.message);
+        showToast('error', 'Falha ao excluir', e.message);
         alert('Erro ao excluir: ' + e.message);
       }
     });
+  };
+
+  // ── WhatsApp Modal (Modelos e Envio) ──
+  window.__activeWhatsAppTarget = null;
+
+  window.openWhatsAppModal = function (options = {}) {
+    const modal = document.getElementById('whatsapp-modal');
+    const title = document.getElementById('whatsapp-modal-title');
+    const subtitle = document.getElementById('whatsapp-modal-subtitle');
+    const body = document.getElementById('whatsapp-modal-body');
+    if (!modal || !body) return;
+
+    const client = (options.client || 'Cliente').trim();
+    const clientFirstName = client.split(' ')[0] || 'Cliente';
+    const phone = options.phone || '';
+    const cleanPhone = String(phone).replace(/\D/g, '');
+    const orderCode = options.orderCode || '';
+    const items = options.items || [];
+    const status = options.status || '';
+    const value = options.value || '';
+
+    let itemsText = '';
+    if (Array.isArray(items) && items.length > 0) {
+      itemsText = items.map(it => `${it.qty || 1}x ${it.brand ? escHtml(it.brand) + ' — ' : ''}${escHtml(it.name || 'peça')}${it.size ? ' (Tam: ' + escHtml(it.size) + ')' : ''}${it.color ? ' (' + escHtml(it.color) + ')' : ''}`).join(', ');
+    } else if (typeof items === 'string' && items) {
+      itemsText = items;
+    } else {
+      itemsText = 'peças exclusivas NT Eleganz';
+    }
+
+    const orderRef = orderCode ? ` ${orderCode}` : '';
+    const valText = value ? `\nValor total: ${value}` : '';
+
+    const templates = {
+      confirmacao: `Olá, ${clientFirstName}! Tudo bem?\n\nAqui é da equipe NT Eleganz. Confirmamos com sucesso o recebimento do seu pedido${orderRef} em nosso sistema:\n${itemsText}${valText}\n\nJá estamos cuidando da preparação das suas peças com todo o padrão de excelência e exclusividade da nossa marca. Caso tenha alguma preferência ou dúvida sobre o envio, estamos à sua total disposição por aqui!`,
+      
+      followup: `Olá, ${clientFirstName}! Tudo bem?\n\nAqui é da equipe NT Eleganz. Notamos que você iniciou o pedido${orderRef} em nosso site com as peças:\n${itemsText}.\n\nComo trabalhamos com coleções exclusivas e tiragem limitada, separamos o seu pedido com prioridade especial.\n\nGostaria de tirar alguma dúvida sobre tamanho, caimento, prazo de envio ou formas de pagamento para concluirmos seu pedido? Estamos à sua total disposição!`,
+      
+      envio: `Olá, ${clientFirstName}! Tudo bem?\n\nTemos ótimas notícias sobre o seu pedido${orderRef} na NT Eleganz: suas peças já foram preparadas com todo cuidado e já estão em fase de despacho e entrega!\n\nLogo você receberá seu pacote no conforto da sua casa. Qualquer dúvida ou se precisar do código de rastreamento detalhado, estamos aqui para te ajudar.`,
+      
+      posvenda: `Olá, ${clientFirstName}! Tudo bem?\n\nVimos que seu pedido${orderRef} na NT Eleganz foi entregue com sucesso! Esperamos que as peças tenham atendido plenamente suas expectativas em sofisticação, conforto e caimento.\n\nComo foi sua experiência com a nossa loja? Adoraríamos ouvir seu feedback. Conte sempre conosco para suas próximas escolhas!`,
+      
+      atendimento: `Olá, ${clientFirstName}! Tudo bem?\n\nAqui é da equipe de atendimento da NT Eleganz. Em que podemos te ajudar hoje a respeito das suas compras ou dúvidas em nossa loja? Estamos à sua total disposição!`,
+      
+      personalizada: `Olá, ${clientFirstName}!\n\n`
+    };
+
+    window.__activeWhatsAppTarget = { client, phone: cleanPhone, orderCode, templates };
+
+    let defaultKey = 'confirmacao';
+    if (status === 'enviado') defaultKey = 'envio';
+    else if (status === 'entregue') defaultKey = 'posvenda';
+    else if (options.isFollowUp || (!status && orderCode)) defaultKey = 'followup';
+
+    title.innerHTML = `Mensagem WhatsApp: <span style="color:var(--text-primary); font-weight:700;">${escHtml(client)}</span>`;
+    if (subtitle) {
+      subtitle.textContent = orderCode ? `Pedido ${orderCode} — Selecione um modelo ou edite antes de enviar` : 'Selecione um modelo de mensagem ou edite antes de enviar';
+    }
+
+    body.innerHTML = `
+      <div style="background:var(--bg-hover, #f8f8f8); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:rgba(37,211,102,0.12); color:#168a3f; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          </div>
+          <div>
+            <div style="font-weight:600; font-size:14px; color:var(--text-primary);">${escHtml(client)}</div>
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">
+              ${orderCode ? `<span class="badge badge-gold" style="font-family:monospace; margin-right:6px; font-size:11px;">${escHtml(orderCode)}</span>` : ''}
+              <span>${escHtml(phone || 'Telefone não informado')}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">WhatsApp:</label>
+          <input type="text" id="whatsapp-target-phone" value="${escHtml(cleanPhone)}" placeholder="Ex: 5511999999999" class="form-control" style="width:160px; padding:6px 10px; font-size:12px; font-family:monospace;">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:8px;">Modelos Prontos de Mensagem:</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;" id="whatsapp-template-pills">
+          <button type="button" class="btn btn-sm ${defaultKey === 'confirmacao' ? 'btn-primary' : 'btn-outline'}" onclick="selectWhatsAppTemplate('confirmacao', this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Confirmação de Pedido
+          </button>
+          <button type="button" class="btn btn-sm ${defaultKey === 'followup' ? 'btn-primary' : 'btn-outline'}" onclick="selectWhatsAppTemplate('followup', this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Follow-up de Venda
+          </button>
+          <button type="button" class="btn btn-sm ${defaultKey === 'envio' ? 'btn-primary' : 'btn-outline'}" onclick="selectWhatsAppTemplate('envio', this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Atualização de Envio
+          </button>
+          <button type="button" class="btn btn-sm ${defaultKey === 'posvenda' ? 'btn-primary' : 'btn-outline'}" onclick="selectWhatsAppTemplate('posvenda', this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Pós-Venda / Conclusão
+          </button>
+          <button type="button" class="btn btn-sm ${defaultKey === 'atendimento' ? 'btn-primary' : 'btn-outline'}" onclick="selectWhatsAppTemplate('atendimento', this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Atendimento Geral
+          </button>
+          <button type="button" class="btn btn-sm ${defaultKey === 'personalizada' ? 'btn-primary' : 'btn-outline'}" onclick="selectWhatsAppTemplate('personalizada', this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Personalizada
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted);">Mensagem (Edite livremente se desejar):</label>
+          <span style="font-size:11px; color:var(--text-muted);" id="whatsapp-char-count">0 caracteres</span>
+        </div>
+        <textarea id="whatsapp-custom-message" class="form-control" style="min-height:180px; font-size:13.5px; line-height:1.55; padding:14px; resize:vertical; background:var(--bg-input); color:var(--text-primary); border:1px solid var(--border);" oninput="updateWhatsAppCharCount()">${escHtml(templates[defaultKey] || '')}</textarea>
+      </div>
+    `;
+
+    updateWhatsAppCharCount();
+    modal.classList.add('open');
+  };
+
+  window.selectWhatsAppTemplate = function (key, btnEl) {
+    if (!window.__activeWhatsAppTarget || !window.__activeWhatsAppTarget.templates) return;
+    const txt = window.__activeWhatsAppTarget.templates[key] || '';
+    const textarea = document.getElementById('whatsapp-custom-message');
+    if (textarea) {
+      textarea.value = txt;
+      updateWhatsAppCharCount();
+    }
+    const container = document.getElementById('whatsapp-template-pills');
+    if (container) {
+      container.querySelectorAll('button').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline');
+      });
+    }
+    if (btnEl) {
+      btnEl.classList.remove('btn-outline');
+      btnEl.classList.add('btn-primary');
+    }
+  };
+
+  window.updateWhatsAppCharCount = function () {
+    const el = document.getElementById('whatsapp-custom-message');
+    const countEl = document.getElementById('whatsapp-char-count');
+    if (el && countEl) {
+      countEl.textContent = `${el.value.length} caracteres`;
+    }
+  };
+
+  window.closeWhatsAppModal = function () {
+    const modal = document.getElementById('whatsapp-modal');
+    if (modal) modal.classList.remove('open');
+  };
+
+  window.copyWhatsAppMessage = function () {
+    const text = document.getElementById('whatsapp-custom-message')?.value || '';
+    if (!text) {
+      alert('Nenhuma mensagem para copiar.');
+      return;
+    }
+    navigator.clipboard.writeText(text);
+    showToast('check', 'Mensagem copiada!', 'Cole diretamente na conversa com o cliente.');
+  };
+
+  window.sendWhatsAppMessage = function () {
+    let rawPhone = document.getElementById('whatsapp-target-phone')?.value || '';
+    let digits = rawPhone.replace(/\D/g, '');
+    if (digits.length < 8) {
+      alert('Por favor, informe um número de telefone WhatsApp válido com DDD.');
+      document.getElementById('whatsapp-target-phone')?.focus();
+      return;
+    }
+    const countryPhone = digits.startsWith('55') ? digits : ('55' + digits);
+    const text = document.getElementById('whatsapp-custom-message')?.value || '';
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/${countryPhone}?text=${encoded}`, '_blank');
+    closeWhatsAppModal();
+    showToast('whatsapp', 'WhatsApp aberto!', 'Conversa iniciada com o cliente.');
   };
 
   // ══════════════════════════════════════════
@@ -2171,29 +2171,28 @@ window.openOrderModal = function (orderId = null) {
 
     tbody.innerHTML = list.map(c => {
       const initials = (c.name || 'C').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'C';
-      const wppPhone = c.cleanPhone.startsWith('55') ? c.cleanPhone : `55${c.cleanPhone}`;
-      const wppLink = c.cleanPhone.length >= 8 ? `https://wa.me/${wppPhone}` : '';
+      const hasPhone = c.cleanPhone && c.cleanPhone.length >= 8;
 
       return `
-        <tr>
+        <tr onclick="openCustomerHistoryModal('${escHtml(c.key)}')">
           <td>
             <div style="display:flex; align-items:center; gap:10px;">
               <div style="width:34px; height:34px; border-radius:50%; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); color:#c9a84c; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">
                 ${escHtml(initials)}
               </div>
               <div>
-                <strong style="color:var(--text-primary); cursor:pointer;" onclick="openCustomerHistoryModal('${escHtml(c.key)}')">${escHtml(c.name)}</strong>
-                ${c.hasLGPD ? '<span class="badge" style="background:rgba(37,211,102,0.12);color:#25d366;font-size:10px;padding:1px 6px;margin-left:6px;border-radius:4px;">LGPD ✓</span>' : ''}
+                <strong style="color:var(--text-primary); cursor:pointer;">${escHtml(c.name)}</strong>
+                ${c.hasLGPD ? '<span class="badge" style="background:rgba(37,211,102,0.12);color:#25d366;font-size:10px;padding:2px 6px;margin-left:6px;border-radius:4px;display:inline-flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> LGPD</span>' : ''}
               </div>
             </div>
           </td>
           <td>
-            ${c.cleanPhone.length >= 8 ? `
-              <a href="${wppLink}" target="_blank" style="color:#25d366; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:500;">
+            ${hasPhone ? `
+              <button type="button" class="btn btn-sm btn-ghost" style="color:#25d366; padding:4px 8px; font-weight:500; display:inline-flex; align-items:center; gap:6px; background:rgba(37,211,102,0.08); border:1px solid rgba(37,211,102,0.25); border-radius:6px; cursor:pointer;" onclick="event.stopPropagation(); openWhatsAppModal({ client: '${escHtml(c.name)}', phone: '${escHtml(c.cleanPhone)}', email: '${escHtml(c.email || '')}' })" title="Enviar mensagem via WhatsApp com modelos prontos">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                ${escHtml(c.phone || c.cleanPhone)}
-              </a>
-            ` : '<span style="color:var(--text-muted);">-</span>'}
+                <span>${escHtml(c.phone || c.cleanPhone)}</span>
+              </button>
+            ` : '<span style="color:var(--text-muted); font-size:0.88rem;">-</span>'}
           </td>
           <td>
             ${c.email ? `<span style="color:var(--text-secondary); font-size:0.88rem;">${escHtml(c.email)}</span>` : '<span style="color:var(--text-muted);">-</span>'}
@@ -2212,13 +2211,13 @@ window.openOrderModal = function (orderId = null) {
           </td>
           <td>
             <div style="display:flex; gap:6px;">
-              <button class="btn btn-sm btn-outline" onclick="openCustomerHistoryModal('${escHtml(c.key)}')">
+              <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); openCustomerHistoryModal('${escHtml(c.key)}')">
                 Ver Pedidos
               </button>
-              ${c.cleanPhone.length >= 8 ? `
-                <a href="${wppLink}" target="_blank" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; display:inline-flex; align-items:center; justify-content:center; padding:5px 8px; text-decoration:none;" title="Conversar no WhatsApp">
-                  💬
-                </a>
+              ${hasPhone ? `
+                <button type="button" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; display:inline-flex; align-items:center; justify-content:center; padding:6px 10px; border-radius:6px; cursor:pointer;" onclick="event.stopPropagation(); openWhatsAppModal({ client: '${escHtml(c.name)}', phone: '${escHtml(c.cleanPhone)}', email: '${escHtml(c.email || '')}' })" title="Conversar no WhatsApp">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                </button>
               ` : ''}
             </div>
           </td>
@@ -2244,105 +2243,246 @@ window.openOrderModal = function (orderId = null) {
     renderCustomersTable(filtered);
   };
 
+  window.__activeCustomerKey = null;
+  window.__activeCustomerFilter = 'todos';
+
+  window.filterCustomerModalOrders = function (filter, btnEl) {
+    window.__activeCustomerFilter = filter;
+    const cust = allCustomers.find(c => c.key === window.__activeCustomerKey);
+    if (!cust) return;
+
+    const tabsContainer = document.getElementById('customer-modal-tabs');
+    if (tabsContainer) {
+      tabsContainer.querySelectorAll('button').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline');
+      });
+    }
+    if (btnEl) {
+      btnEl.classList.remove('btn-outline');
+      btnEl.classList.add('btn-primary');
+    }
+
+    renderCustomerModalOrdersList(cust, filter);
+  };
+
+  function renderCustomerModalOrdersList(cust, filter = 'todos') {
+    const listContainer = document.getElementById('customer-modal-orders-list');
+    if (!listContainer) return;
+
+    let orders = [...cust.orders].sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+
+    if (filter === 'concluidos') {
+      orders = orders.filter(o => o.status === 'entregue' || o.status === 'concluido');
+    } else if (filter === 'andamento') {
+      orders = orders.filter(o => o.status === 'novo' || o.status === 'confirmado' || o.status === 'enviado');
+    } else if (filter === 'cancelados') {
+      orders = orders.filter(o => o.status === 'cancelado');
+    }
+
+    if (!orders.length) {
+      listContainer.innerHTML = `
+        <div style="text-align:center; padding:32px 16px; background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; color:var(--text-muted);">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px auto; display:block; opacity:0.5;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <div style="font-weight:600; font-size:0.95rem; color:var(--text-primary); margin-bottom:4px;">Nenhum pedido neste filtro</div>
+          <div style="font-size:0.85rem;">Não há pedidos com o status selecionado para este cliente.</div>
+        </div>
+      `;
+      return;
+    }
+
+    listContainer.innerHTML = orders.map(order => {
+      const thumb = getOrderThumbnail(order);
+      const orderCode = order.code || `#NTE-${String(order.id).slice(-4).toUpperCase()}`;
+      const cleanCode = orderCode.replace('#', '');
+      const items = Array.isArray(order.items) ? order.items : [];
+      const orderValue = order.value ? (String(order.value).startsWith('R$') ? order.value : fmt.currency(order.value)) : '—';
+      const orderDate = fmt.date(order.createdAt || order.created_at || new Date().toISOString());
+
+      return `
+        <div style="background:var(--bg-surface); border:1px solid var(--border); border-radius:12px; padding:18px; transition:border-color 0.15s; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              ${thumb ? `
+                <img src="${escHtml(thumb)}" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid var(--border); background:var(--bg-card);">
+              ` : `
+                <div style="width:48px; height:48px; border-radius:8px; background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.25); display:flex; align-items:center; justify-content:center; color:#c9a84c;">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                </div>
+              `}
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="badge badge-gold" style="font-family:monospace; font-weight:700;">${escHtml(orderCode)}</span>
+                  <span style="font-size:12px; color:var(--text-muted);">${escHtml(orderDate)}</span>
+                </div>
+                <div style="font-size:0.95rem; font-weight:600; color:var(--text-primary); margin-top:4px;">
+                  ${escHtml(order.productName || (items[0] && items[0].name) || 'Pedido da Loja')}
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:right;">
+              <div style="font-weight:700; color:#c9a84c; font-size:1.1rem;">${escHtml(orderValue)}</div>
+              <div style="margin-top:4px;">${statusBadge(order.status)}</div>
+            </div>
+          </div>
+
+          ${items.length > 0 ? `
+            <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-bottom:14px; font-size:0.84rem;">
+              <div style="font-weight:600; color:var(--text-secondary); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.04em; font-size:11px;">Itens do Pedido (${items.length}):</div>
+              ${items.map(it => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.03);">
+                  <div style="color:var(--text-primary);">
+                    <span style="color:#c9a84c; font-weight:600;">•</span>
+                    ${escHtml(it.brand ? `${it.brand} — ` : '')}${escHtml(it.name || 'Produto')}
+                    ${it.size ? `<span style="color:var(--text-muted); font-size:12px; margin-left:4px;">(Tam: ${escHtml(it.size)})</span>` : ''}
+                    ${it.color ? `<span style="color:var(--text-muted); font-size:12px; margin-left:4px;">(Cor: ${escHtml(it.color)})</span>` : ''}
+                    <span style="font-weight:700; color:var(--text-secondary); margin-left:6px;">x${escHtml(String(it.qty || 1))}</span>
+                  </div>
+                  <strong style="color:#c9a84c; font-size:0.85rem;">${escHtml(it.price || '')}</strong>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+
+          <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; border-top:1px solid var(--border); padding-top:12px;">
+            <a href="/order/${encodeURIComponent(cleanCode)}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              <span>Ver no Site</span>
+            </a>
+
+            <button type="button" class="btn btn-sm" style="background:#25d366; color:#05260f; font-weight:700; border:none; display:inline-flex; align-items:center; gap:5px; cursor:pointer;" onclick="openWhatsAppModal(allOrders.find(o => String(o.id) === '${escHtml(String(order.id))}'))">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              <span>WhatsApp</span>
+            </button>
+
+            <button type="button" class="btn btn-sm btn-primary" onclick="closeCustomerModal(); openOrderModal('${escHtml(order.id)}');">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <span>Ver Detalhes</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   window.openCustomerHistoryModal = function (customerKey) {
     const cust = allCustomers.find(c => c.key === customerKey);
     if (!cust) return;
+
+    window.__activeCustomerKey = customerKey;
+    window.__activeCustomerFilter = 'todos';
 
     const modal = document.getElementById('customer-modal');
     const title = document.getElementById('customer-modal-title');
     const body = document.getElementById('customer-modal-body');
     if (!modal || !body) return;
 
-    title.innerHTML = `Histórico de Pedidos: <span style="color:#c9a84c;">${escHtml(cust.name)}</span>`;
+    title.innerHTML = `Histórico do Cliente: <span style="color:#c9a84c;">${escHtml(cust.name)}</span>`;
 
-    const wppPhone = cust.cleanPhone.startsWith('55') ? cust.cleanPhone : `55${cust.cleanPhone}`;
-    const wppLink = cust.cleanPhone.length >= 8 ? `https://wa.me/${wppPhone}` : '';
-
-    const ordersSorted = [...cust.orders].sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+    const initials = (cust.name || 'C').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'C';
+    const totalOrders = cust.orders.length;
+    const completedOrders = cust.orders.filter(o => o.status === 'entregue' || o.status === 'concluido').length;
+    const inProgressOrders = cust.orders.filter(o => o.status === 'novo' || o.status === 'confirmado' || o.status === 'enviado').length;
+    const cancelledOrders = cust.orders.filter(o => o.status === 'cancelado').length;
+    const hasPhone = cust.cleanPhone && cust.cleanPhone.length >= 8;
 
     body.innerHTML = `
-      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(201,168,76,0.25); border-radius:12px; padding:16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-        <div>
-          <div style="font-size:1.1rem; font-weight:700; color:var(--text-primary);">${escHtml(cust.name)}</div>
-          <div style="display:flex; align-items:center; gap:12px; margin-top:4px; font-size:0.85rem; color:var(--text-muted); flex-wrap:wrap;">
-            ${cust.phone ? `<span>📱 <strong>${escHtml(cust.phone)}</strong></span>` : ''}
-            ${cust.email ? `<span>✉️ <strong>${escHtml(cust.email)}</strong></span>` : ''}
-            ${cust.hasLGPD ? '<span style="color:#25d366;">✓ Consentimento LGPD ativo</span>' : ''}
+      <!-- Customer Profile Header Card -->
+      <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="width:48px; height:48px; border-radius:50%; background:rgba(201,168,76,0.15); border:1.5px solid rgba(201,168,76,0.4); color:#c9a84c; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0;">
+            ${escHtml(initials)}
+          </div>
+          <div>
+            <div style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">${escHtml(cust.name)}</div>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:5px; font-size:0.86rem; color:var(--text-muted); flex-wrap:wrap;">
+              ${cust.phone ? `
+                <span style="display:inline-flex; align-items:center; gap:5px; color:var(--text-secondary);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  ${escHtml(cust.phone)}
+                </span>
+              ` : ''}
+              ${cust.email ? `
+                <span style="display:inline-flex; align-items:center; gap:5px; color:var(--text-secondary);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  ${escHtml(cust.email)}
+                </span>
+              ` : ''}
+              ${cust.hasLGPD ? `
+                <span style="color:#25d366; font-size:11px; display:inline-flex; align-items:center; gap:4px; background:rgba(37,211,102,0.1); padding:2px 8px; border-radius:4px; border:1px solid rgba(37,211,102,0.2);">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  LGPD Ativo
+                </span>
+              ` : ''}
+            </div>
           </div>
         </div>
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${wppLink ? `
-            <a href="${wppLink}" target="_blank" class="btn btn-sm" style="background:#25d366; color:#05260f; border:none; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
-              <span>💬</span> Conversar no WhatsApp
-            </a>
+
+        <div>
+          ${hasPhone ? `
+            <button type="button" class="btn" style="background:#25d366; color:#05260f; font-weight:700; border:none; display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="openWhatsAppModal({ client: '${escHtml(cust.name)}', phone: '${escHtml(cust.cleanPhone)}', email: '${escHtml(cust.email || '')}' })">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              <span>Mensagem no WhatsApp</span>
+            </button>
           ` : ''}
         </div>
       </div>
 
-      <div style="font-size:0.85rem; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#c9a84c; margin-bottom:12px;">
-        Pedidos Realizados (${ordersSorted.length}) — Total Gasto: ${fmt.currency(cust.totalSpent)}
+      <!-- Customer KPI Summary Grid -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; margin-bottom:20px;">
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:4px;">Total Pedidos</div>
+          <div style="font-size:1.3rem; font-weight:700; color:var(--text-primary);">${totalOrders}</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:4px;">Total Gasto</div>
+          <div style="font-size:1.3rem; font-weight:700; color:#c9a84c;">${fmt.currency(cust.totalSpent)}</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:4px;">Concluídos</div>
+          <div style="font-size:1.3rem; font-weight:700; color:#16a34a;">${completedOrders}</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; text-align:center;">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); margin-bottom:4px;">Em Andamento</div>
+          <div style="font-size:1.3rem; font-weight:700; color:#eab308;">${inProgressOrders}</div>
+        </div>
       </div>
 
-      <div style="display:grid; gap:14px;">
-        ${ordersSorted.map(order => {
-          const thumb = getOrderThumbnail(order);
-          const orderCode = order.code || `#NTE-${String(order.id).slice(-4).toUpperCase()}`;
-          const cleanCode = orderCode.replace('#', '');
-          const itemsCount = Array.isArray(order.items) ? order.items.length : 1;
-
-          return `
-            <div style="background:var(--bg-surface, #141414); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:16px; transition:border-color 0.15s;" onmouseover="this.style.borderColor='rgba(201,168,76,0.3)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                  ${thumb ? `<img src="${escHtml(thumb)}" style="width:44px; height:44px; border-radius:8px; object-fit:cover; border:1px solid rgba(201,168,76,0.3); background:#111;">` : '<div style="width:44px; height:44px; border-radius:8px; background:#222; display:flex; align-items:center; justify-content:center;">🛍️</div>'}
-                  <div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                      <span class="badge badge-gold" style="font-family:monospace; font-weight:700;">${escHtml(orderCode)}</span>
-                      <span style="font-size:12px; color:var(--text-muted);">${fmt.date(order.createdAt || order.created_at)}</span>
-                    </div>
-                    <div style="font-size:0.9rem; font-weight:600; color:var(--text-primary); margin-top:3px;">
-                      ${escHtml(order.productName || 'Detalhes do Pedido')}
-                    </div>
-                  </div>
-                </div>
-                <div style="text-align:right;">
-                  <div style="font-weight:700; color:#c9a84c; font-size:1rem;">${escHtml(order.value || '')}</div>
-                  <div style="margin-top:4px;">${orderStatusBadge(order.status)}</div>
-                </div>
-              </div>
-
-              ${Array.isArray(order.items) && order.items.length > 0 ? `
-                <div style="background:rgba(0,0,0,0.25); border-radius:8px; padding:10px 12px; margin-bottom:12px; font-size:0.82rem; color:#aaa;">
-                  <div style="margin-bottom:6px; font-weight:600; color:#ddd;">Itens (${order.items.length}):</div>
-                  ${order.items.map(it => `
-                    <div style="display:flex; justify-content:space-between; padding:3px 0;">
-                      <span>• ${escHtml(it.brand ? `${it.brand} — ` : '')}${escHtml(it.name || 'Produto')} ${it.size ? `(Tam: ${escHtml(it.size)})` : ''} ${it.color ? `(${escHtml(it.color)})` : ''} x${escHtml(String(it.qty || 1))}</span>
-                      <strong style="color:#c9a84c;">${escHtml(it.price || '')}</strong>
-                    </div>
-                  `).join('')}
-                </div>
-              ` : ''}
-
-              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
-                <a href="/order/${encodeURIComponent(cleanCode)}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">
-                  🔗 Ver Página do Pedido
-                </a>
-                <button class="btn btn-sm btn-primary" onclick="closeCustomerModal(); openOrderModal('${escHtml(order.id)}');">
-                  ✏️ Editar no Admin
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('')}
+      <!-- Filter Tabs by Status -->
+      <div id="customer-modal-tabs" style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:12px; flex-wrap:wrap;">
+        <button type="button" class="btn btn-sm btn-primary" onclick="filterCustomerModalOrders('todos', this)">
+          Todos (${totalOrders})
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="filterCustomerModalOrders('concluidos', this)">
+          Concluídos (${completedOrders})
+        </button>
+        <button type="button" class="btn btn-sm btn-outline" onclick="filterCustomerModalOrders('andamento', this)">
+          Em Andamento (${inProgressOrders})
+        </button>
+        ${cancelledOrders > 0 ? `
+          <button type="button" class="btn btn-sm btn-outline" onclick="filterCustomerModalOrders('cancelados', this)">
+            Cancelados (${cancelledOrders})
+          </button>
+        ` : ''}
       </div>
+
+      <!-- Orders List Container -->
+      <div id="customer-modal-orders-list"></div>
     `;
 
+    renderCustomerModalOrdersList(cust, 'todos');
+
+    modal.classList.add('open');
     modal.classList.add('active');
   };
 
   window.closeCustomerModal = function () {
     const modal = document.getElementById('customer-modal');
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.classList.remove('active');
+    }
   };
 
   // ══════════════════════════════════════════
@@ -2423,7 +2563,7 @@ window.openOrderModal = function (orderId = null) {
       const labels = { local: 'LocalStorage', firebase: 'Firebase', supabase: 'Supabase', hostinger: 'Hostinger (produtos)' };
       document.getElementById('db-mode-label').textContent = labels[currentDBMode];
       alertEl.innerHTML = `<div class="alert alert-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Configuração salva! Banco: ${labels[currentDBMode]}</div>`;
-      showToast('✦', 'DB configurado!', labels[currentDBMode]);
+      showToast('check', 'DB configurado!', labels[currentDBMode]);
     } catch (e) {
       alertEl.innerHTML = `<div class="alert alert-danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Erro: ${e.message}</div>`;
     }
@@ -2493,13 +2633,13 @@ window.openOrderModal = function (orderId = null) {
     };
     localStorage.setItem('nte_wpp_settings', JSON.stringify(settings));
     alertEl.innerHTML = '<div class="alert alert-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>WhatsApp atualizado!</div>';
-    showToast('💬', 'WhatsApp salvo!', settings.number);
+    showToast('whatsapp', 'WhatsApp salvo!', settings.number);
   };
 
   // ── Export / Import ──
   window.exportData = function () {
     window.ntDB?.export();
-    showToast('💾', 'Exportando dados...', 'arquivo JSON sendo baixado');
+    showToast('save', 'Exportando dados...', 'arquivo JSON sendo baixado');
   };
 
   window.importData = async function (e) {
@@ -2509,7 +2649,7 @@ window.openOrderModal = function (orderId = null) {
       await window.ntDB?.import(file);
       allProducts = await window.ntDB.products.getAll();
       allOrders = await window.ntDB.orders.getAll();
-      showToast('✦', 'Dados importados!', `${allProducts.length} produtos, ${allOrders.length} pedidos`);
+      showToast('check', 'Dados importados!', `${allProducts.length} produtos, ${allOrders.length} pedidos`);
       loadOverview();
     } catch (err) {
       alert('Erro ao importar: ' + err.message);
@@ -2532,6 +2672,9 @@ window.openOrderModal = function (orderId = null) {
     const label = status ? status.charAt(0).toUpperCase() + status.slice(1) : '—';
     return `<span class="badge ${cls}">${escHtml(label)}</span>`;
   }
+
+  window.statusBadge = statusBadge;
+  window.orderStatusBadge = statusBadge;
 
   function escHtml(str) {
     return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -2751,7 +2894,39 @@ window.showConfirm = function (msg, callback) {
     confirmCallback = null;
   };
 
-  // ── Toast ──
+  // ── Toast (SVG Vectors — Zero Emojis) ──
+  const toastIcons = {
+    check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    bell: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+    box: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+    trash: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+    whatsapp: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>',
+    save: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>'
+  };
+
+  const mapIcon = {
+    '✓': toastIcons.check,
+    'check': toastIcons.check,
+    '🔔': toastIcons.bell,
+    'bell': toastIcons.bell,
+    '✦': toastIcons.info,
+    'info': toastIcons.info,
+    '!': toastIcons.info,
+    '📦': toastIcons.box,
+    'box': toastIcons.box,
+    '🗑️': toastIcons.trash,
+    '🗑': toastIcons.trash,
+    'trash': toastIcons.trash,
+    '✘': toastIcons.error,
+    'error': toastIcons.error,
+    '💬': toastIcons.whatsapp,
+    'whatsapp': toastIcons.whatsapp,
+    '💾': toastIcons.save,
+    'save': toastIcons.save
+  };
+
   function showToast(icon, title, msg) {
     let container = document.getElementById('admin-toast-container');
     if (!container) {
@@ -2761,10 +2936,12 @@ window.showConfirm = function (msg, callback) {
       document.body.appendChild(container);
     }
 
+    const toastIcon = mapIcon[icon] || (String(icon).startsWith('<svg') ? icon : toastIcons.info);
+
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `
-      <span class="toast-icon">${icon}</span>
+      <span class="toast-icon" style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;">${toastIcon}</span>
       <div>
         <div class="toast-title">${escHtml(title)}</div>
         ${msg ? `<div class="toast-desc">${escHtml(msg)}</div>` : ''}

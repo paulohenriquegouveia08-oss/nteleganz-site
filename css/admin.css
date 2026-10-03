@@ -841,6 +841,10 @@ input, select, textarea { font-family: inherit; }
   color: var(--text-secondary);
 }
 
+.data-table tbody tr {
+  cursor: pointer;
+  transition: background var(--transition);
+}
 .data-table tbody tr:hover td { background: var(--bg-hover); }
 .data-table tbody tr:last-child td { border-bottom: none; }
 .table-responsive { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -1055,7 +1059,8 @@ input, select, textarea { font-family: inherit; }
   pointer-events: none;
   transition: all var(--transition);
 }
-.modal-overlay.open {
+.modal-overlay.open,
+.modal-overlay.active {
   opacity: 1;
   visibility: visible;
   pointer-events: all;
