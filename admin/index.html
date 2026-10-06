@@ -716,9 +716,12 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Estoque disponível *</label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0;">Estoque disponível *</label>
+            <button type="button" class="btn btn-secondary btn-sm" style="padding:2px 8px; font-size:11px; height:auto; cursor:pointer;" onclick="document.getElementById('p-stock').value='0'">Zerar Estoque (Esgotado)</button>
+          </div>
           <input type="number" class="form-control" id="p-stock" min="0" step="1" placeholder="0" required />
-          <small class="form-hint">Use 0 para marcar o produto como esgotado.</small>
+          <small class="form-hint">Use 0 para marcar o produto como esgotado sem burocracia.</small>
         </div>
         <div class="form-group">
           <label>Badge (opcional)</label>

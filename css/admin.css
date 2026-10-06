@@ -860,6 +860,11 @@ input, select, textarea { font-family: inherit; }
   padding: 4px;
 }
 
+.product-thumb.is-out-of-stock {
+  filter: grayscale(100%) !important;
+  opacity: 0.55 !important;
+}
+
 .table-brand {
   font-size: 10px;
   letter-spacing: 0.1em;
@@ -926,6 +931,7 @@ input, select, textarea { font-family: inherit; }
 .badge-info    { background: var(--info-bg);    color: var(--info); }
 .badge-gold    { background: #f0f0f0; color: #0a0a0a; }
 .badge-muted   { background: rgba(0,0,0,0.05); color: var(--text-muted); }
+.badge-out-of-stock { background: #dc2626 !important; color: #ffffff !important; font-weight: 700 !important; }
 
 /* ══════════════════════════════════════════
    BUTTONS

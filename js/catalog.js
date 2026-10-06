@@ -238,18 +238,25 @@
   }
 
   function renderCard(p) {
+    const isOutOfStock = (p.stock !== undefined && Number(p.stock) <= 0) || p.inStock === false || p.available === false;
     const badgeClass = p.badge === 'OFERTA' ? 'catalog-card__badge--sale' : p.badge === 'LUXO' ? 'catalog-card__badge--new' : '';
     const brand = esc(p.brand || '');
     const name = esc(p.name || '');
     const productUrl = (window.ntWpp?.getProductUrl ? window.ntWpp.getProductUrl(p) : `/products/?id=${esc(p.id)}`);
     return `
-      <article class="catalog-card" role="listitem" data-product-id="${esc(p.id)}">
+      <article class="catalog-card ${isOutOfStock ? 'is-out-of-stock' : ''}" role="listitem" data-product-id="${esc(p.id)}">
         <a href="${productUrl}" class="catalog-card__img-wrap" aria-label="Ver ${name}">
-          <img src="${esc(p.image)}"${cardSrcset(p.image)} alt="${brand} — ${name}" loading="lazy" decoding="async" onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
-          ${p.badge ? `<span class="catalog-card__badge ${badgeClass}">${esc(p.badge)}</span>` : ''}
+          <img src="${esc(p.image)}"${cardSrcset(p.image)} alt="${brand} — ${name}" loading="lazy" decoding="async"
+            style="${isOutOfStock ? 'filter: grayscale(100%); opacity: 0.6;' : ''}"
+            onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
+          ${isOutOfStock
+            ? '<span class="catalog-card__badge badge-out-of-stock" style="display:inline-flex !important; position:absolute; top:12px; left:12px; background:#dc2626 !important; color:#ffffff !important; font-size:11px !important; font-weight:700 !important; letter-spacing:0.8px !important; padding:4px 10px !important; border-radius:4px !important; text-transform:uppercase !important; z-index:5 !important; box-shadow:0 2px 6px rgba(0,0,0,0.3) !important;">ESGOTADO</span>'
+            : (p.badge ? `<span class="catalog-card__badge ${badgeClass}">${esc(p.badge)}</span>` : '')}
+          ${!isOutOfStock ? `
           <button class="catalog-card__quick-add" onclick="event.preventDefault();event.stopPropagation();catalogAddToCart('${esc(p.id)}')">
             Adicionar ao Carrinho
           </button>
+          ` : ''}
         </a>
         <div class="catalog-card__info">
           <span class="catalog-card__brand">${brand}</span>

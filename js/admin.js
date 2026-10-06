@@ -867,11 +867,17 @@
     const end = start + productPageSize;
     const pageProducts = products.slice(start, end);
 
-    tbody.innerHTML = pageProducts.map(p => `
+    tbody.innerHTML = pageProducts.map(p => {
+      const isOutOfStock = (p.stock !== undefined && Number(p.stock) <= 0) || p.inStock === false || p.available === false;
+      return `
       <tr data-id="${p.id}">
         <td>
-          <img class="product-thumb" src="${escHtml(p.image || 'data:image/svg+xml,<svg/>')}" alt="${escHtml(p.name)}"
-            onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'44\\' height=\\'56\\'/%3E'" />
+          <div style="position:relative; display:inline-block;">
+            <img class="product-thumb ${isOutOfStock ? 'is-out-of-stock' : ''}" src="${escHtml(p.image || 'data:image/svg+xml,<svg/>')}" alt="${escHtml(p.name)}"
+              style="${isOutOfStock ? 'filter: grayscale(100%); opacity: 0.55;' : ''}"
+              onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'44\\' height=\\'56\\'/%3E'" />
+            ${isOutOfStock ? '<span style="position:absolute; bottom:2px; left:50%; transform:translateX(-50%); background:#dc2626; color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:3px; letter-spacing:0.5px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,0.4); text-transform:uppercase;">ESGOTADO</span>' : ''}
+          </div>
         </td>
         <td>
           <div class="table-brand">${escHtml(p.brand || '—')}</div>
@@ -888,9 +894,12 @@
           ${!p.featured && !p.destaque ? '<span style="color:var(--text-muted);font-size:11px;">—</span>' : ''}
         </td>
         <td>
-          ${p.active !== false
-            ? '<span class="badge badge-success">Ativo</span>'
-            : '<span class="badge badge-muted">Inativo</span>'}
+          ${isOutOfStock
+            ? '<span class="badge" style="background:#dc2626; color:#fff; font-weight:700; text-transform:uppercase;">ESGOTADO</span>'
+            : (p.active !== false
+                ? '<span class="badge badge-success">Ativo</span>'
+                : '<span class="badge badge-muted">Inativo</span>')}
+          ${isOutOfStock && p.active === false ? '<br><span class="badge badge-muted" style="margin-top:4px;">Inativo</span>' : ''}
         </td>
         <td>
           <div style="display:flex; gap:6px;">
@@ -903,7 +912,8 @@
           </div>
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
 
     updatePaginationControls(products.length);
   }
@@ -1501,8 +1511,9 @@
   }
 
   function syncImageUrls() {
-    const uploaded = pendingImages.filter(image => image.startsWith('data:image/'));
-    pendingImages = [...new Set([...uploaded, ...imageUrlsFromField()])].slice(0, 8);
+    const existing = pendingImages.filter(image => typeof image === 'string' && image.trim().length > 0);
+    const fromField = imageUrlsFromField();
+    pendingImages = [...new Set([...existing, ...fromField])].slice(0, 8);
     renderImagePreviews();
   }
 

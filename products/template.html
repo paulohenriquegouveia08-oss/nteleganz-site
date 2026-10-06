@@ -281,7 +281,8 @@
 
       <!-- Gallery -->
       <div class="product-gallery">
-        <div class="swiper gallery-main-swiper" id="gallery-main">
+        <div class="swiper gallery-main-swiper" id="gallery-main" style="position:relative;">
+          <span id="product-out-badge" style="display:none; position:absolute; top:16px; left:16px; z-index:10; background:#dc2626; color:#ffffff; font-size:12px; font-weight:700; letter-spacing:1px; padding:6px 14px; border-radius:4px; text-transform:uppercase; box-shadow:0 2px 8px rgba(0,0,0,0.3);">ESGOTADO</span>
           <div class="swiper-wrapper" id="gallery-slides">
             <!-- Rendered by JS -->
           </div>
@@ -595,20 +596,31 @@
     const thumbs = document.getElementById('thumb-slides');
     if (!slides || !thumbs) return;
 
+    const stock = Number(product.stock);
+    const available = product.active !== false && product.available !== false && Number.isFinite(stock) && stock > 0;
+    const isOutOfStock = !available;
+
     const images = [...new Set((Array.isArray(product.images) && product.images.length
       ? product.images
       : [product.image]).filter(Boolean))];
     document.getElementById('gallery-thumbs').hidden = images.length < 2;
 
+    const outBadge = document.getElementById('product-out-badge');
+    if (outBadge) {
+      outBadge.style.display = isOutOfStock ? 'inline-flex' : 'none';
+    }
+
+    const imgStyle = isOutOfStock ? 'style="filter: grayscale(100%); opacity: 0.65;"' : '';
+
     slides.innerHTML = images.map((img, i) => `
       <div class="swiper-slide">
-        <img src="${escapeAttr(img)}" alt="${escapeAttr(product.name)} — foto ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
+        <img src="${escapeAttr(img)}" alt="${escapeAttr(product.name)} — foto ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" ${imgStyle} onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
       </div>
     `).join('');
 
     thumbs.innerHTML = images.map((img, i) => `
       <div class="swiper-slide">
-        <img src="${escapeAttr(img)}" alt="${escapeAttr(product.name)} — foto ${i + 1}" loading="lazy" decoding="async" onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
+        <img src="${escapeAttr(img)}" alt="${escapeAttr(product.name)} — foto ${i + 1}" loading="lazy" decoding="async" ${imgStyle} onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
       </div>
     `).join('');
 
@@ -646,13 +658,24 @@
     if (stockLine) {
       stockLine.classList.toggle('stock-line--out', !available);
       stockLine.classList.toggle('stock-line--low', available && stock <= LAST_PIECES_THRESHOLD);
-      stockLine.textContent = !available ? 'Esgotado' : stock > LAST_PIECES_THRESHOLD ? 'Em estoque' : 'Últimas peças';
+      if (!available) {
+        stockLine.innerHTML = '<span style="color:#dc2626; font-weight:700;">● ESGOTADO</span>';
+      } else {
+        stockLine.textContent = stock > LAST_PIECES_THRESHOLD ? 'Em estoque' : 'Últimas peças';
+      }
     }
     selectedQty = 1;
     const addToCartButton = document.getElementById('add-to-cart-btn');
     if (addToCartButton) {
       addToCartButton.disabled = !available;
       addToCartButton.textContent = available ? 'Adicionar ao Carrinho' : 'Produto esgotado';
+      addToCartButton.style.opacity = available ? '' : '0.55';
+      addToCartButton.style.cursor = available ? '' : 'not-allowed';
+    }
+    const buyWppBtn = document.getElementById('buy-whatsapp-btn');
+    if (buyWppBtn) {
+      buyWppBtn.style.opacity = available ? '' : '0.55';
+      buyWppBtn.style.pointerEvents = available ? '' : 'none';
     }
 
     const oldPriceEl = document.getElementById('product-old-price');
