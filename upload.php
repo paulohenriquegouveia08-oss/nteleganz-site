@@ -42,13 +42,16 @@ if (!$token) {
     respond(401, 'Acesso não autenticado: informe a sessão do administrador.');
 }
 
-$userId = supabaseUserId($token);
-if (!$userId) {
-    respond(401, 'Sessão inválida ou expirada. Faça login novamente no painel.');
-}
+$isAdmin = isValidAdminSession($token);
+if (!$isAdmin) {
+    $userId = supabaseUserId($token);
+    if (!$userId) {
+        respond(401, 'Sessão inválida ou expirada. Faça login novamente no painel.');
+    }
 
-if (!isSupabaseAdmin($token, $userId)) {
-    respond(403, 'Acesso negado: apenas administradores podem enviar imagens.');
+    if (!isSupabaseAdmin($token, $userId)) {
+        respond(403, 'Acesso negado: apenas administradores podem enviar imagens.');
+    }
 }
 
 $input = file_get_contents('php://input');
@@ -193,6 +196,18 @@ function supabaseRequest($path, $token, $query = '') {
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     return array($status, $body);
+}
+
+function isValidAdminSession($token) {
+    if (empty($token)) return false;
+    $sessionFile = __DIR__ . '/data/admin_sessions.json';
+    if (!file_exists($sessionFile)) return false;
+    $sessions = @json_decode(@file_get_contents($sessionFile), true);
+    if (!is_array($sessions)) return false;
+    if (isset($sessions[$token]) && ($sessions[$token]['expires_at'] ?? 0) >= time()) {
+        return true;
+    }
+    return false;
 }
 
 function supabaseUserId($token) {

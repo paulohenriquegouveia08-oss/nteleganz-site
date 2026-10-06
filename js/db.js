@@ -581,6 +581,8 @@
   /** Token do admin logado, para autorizar escrita. Ausente na vitrine. */
   async function adminAccessToken() {
     try {
+      const localToken = localStorage.getItem('nte_admin_token');
+      if (localToken) return localToken;
       const client = await window.ntAuth?.getClient?.();
       const { data } = await client?.auth?.getSession?.() ?? {};
       return data?.session?.access_token || '';
