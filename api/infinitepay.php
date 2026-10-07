@@ -71,6 +71,7 @@ foreach ($items as $item) {
     if (mb_strlen($desc) > 80) $desc = mb_substr($desc, 0, 77) . '...';
 
     $infiniteItems[] = [
+        'name' => mb_substr($item['name'] ?? 'Produto NT Eleganz', 0, 80),
         'quantity' => $qty,
         'price' => $unitPriceCents,
         'description' => $desc
@@ -83,6 +84,7 @@ if (is_array($shipping) && !empty($shipping['price']) && (float)$shipping['price
     $shippingCents = (int)round((float)$shipping['price'] * 100);
     $shipName = $shipping['name'] ?? 'Frete Especial Segurado';
     $infiniteItems[] = [
+        'name' => 'Frete: ' . mb_substr($shipName, 0, 50),
         'quantity' => 1,
         'price' => $shippingCents,
         'description' => 'Frete: ' . mb_substr($shipName, 0, 60)
@@ -117,7 +119,9 @@ $infiniteAddress = [
     'street' => trim((string)($addr['street'] ?? '')),
     'neighborhood' => trim((string)($addr['neighborhood'] ?? '')),
     'number' => trim((string)($addr['number'] ?? '')),
-    'complement' => trim((string)($addr['complement'] ?? ''))
+    'complement' => trim((string)($addr['complement'] ?? '')),
+    'city' => trim((string)($addr['city'] ?? '')),
+    'state' => strtoupper(trim((string)($addr['state'] ?? '')))
 ];
 
 $redirectUrl = "https://nteleganz.com.br/pedido/?code={$orderCode}";

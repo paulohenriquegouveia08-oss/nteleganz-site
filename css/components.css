@@ -87,8 +87,8 @@
 }
 
 .btn-whatsapp {
-  background: linear-gradient(135deg, #25D366, #128C7E);
-  color: var(--white);
+  background: var(--gold);
+  color: var(--text-inverse);
   border-color: transparent;
   gap: var(--space-3);
   font-size: var(--text-sm);
@@ -508,11 +508,11 @@
 }
 
 .header-icon-btn--whatsapp {
-  color: #25D366;
+  color: var(--text-primary);
 }
 .header-icon-btn--whatsapp:hover {
-  color: #4ae08a;
-  background: rgba(37,211,102,0.08);
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .cart-badge {
@@ -1856,7 +1856,7 @@ body.menu-open .menu-sphere-close {
 }
 
 .footer-link--icon { display: inline-flex; align-items: center; gap: 8px; }
-.footer-contact-icon { width: 16px; height: 16px; flex: 0 0 16px; color: #25d366; }
+.footer-contact-icon { width: 16px; height: 16px; flex: 0 0 16px; color: currentColor; }
 
 .footer-link:hover {
   color: #ffffff;
@@ -2133,13 +2133,14 @@ body.menu-open .menu-sphere-close {
   left: var(--space-6);
   width: 56px;
   height: 56px;
-  background: #25D366;
+  background: var(--gold);
+  color: var(--text-inverse);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--z-toast);
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   transition: all var(--transition-spring);
   animation: pulse-gold 2s infinite;
 }
