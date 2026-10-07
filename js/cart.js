@@ -327,6 +327,11 @@
     renderCart();
     openCart();
     showToast(null, 'Produto adicionado ao carrinho', [product.brand, product.name].filter(Boolean).join(' — '));
+
+    // Rastreamento: AddToCart para Meta Ads / GA4 / TikTok
+    if (window.nteTracking && typeof window.nteTracking.trackAddToCart === 'function') {
+      window.nteTracking.trackAddToCart(product);
+    }
   }
 
   // ── Remove item ──

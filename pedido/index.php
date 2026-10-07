@@ -1184,5 +1184,28 @@ if (strpos($firstItemImg, 'http') !== 0) {
 
     document.addEventListener('DOMContentLoaded', hydrateFromClient);
   </script>
+  <!-- Rastreamento & Marketing (Purchase Tracking) -->
+  <script src="/js/tracking.js?v=20261007"></script>
+  <script>
+    (function () {
+      const orderPayload = <?= json_encode([
+        'code' => $displayCode,
+        'value' => $totalValue,
+        'items' => $items
+      ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+
+      function firePurchaseTrack() {
+        if (window.nteTracking && typeof window.nteTracking.trackPurchase === 'function') {
+          window.nteTracking.trackPurchase(orderPayload);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', firePurchaseTrack);
+      } else {
+        firePurchaseTrack();
+      }
+    })();
+  </script>
 </body>
 </html>

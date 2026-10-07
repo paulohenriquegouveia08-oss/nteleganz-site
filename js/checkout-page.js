@@ -115,6 +115,12 @@
     }, 0);
 
     renderCartSummary();
+
+    // Rastreamento: InitiateCheckout para Meta Ads / GA4
+    if (window.nteTracking && typeof window.nteTracking.trackInitiateCheckout === 'function') {
+      window.nteTracking.trackInitiateCheckout(cartItems, subtotal);
+    }
+
     return true;
   }
 
@@ -162,11 +168,16 @@
   // ── Carregamento Dinâmico das Formas de Entrega ──
   async function loadShippingMethods() {
     const listEl = document.getElementById('chk-shipping-list');
+    const totalQty = cartItems.reduce((acc, item) => acc + (Math.max(1, Number(item.qty) || 1)), 0);
     try {
       const res = await fetch('/api/shipping_methods.php', { cache: 'no-store' });
       const data = await res.json();
       if (data && Array.isArray(data.methods) && data.methods.length > 0) {
-        shippingMethods = data.methods.filter(m => m.active !== false);
+        shippingMethods = data.methods.filter(m => {
+          if (m.active === false) return false;
+          if (m.singleItemOnly && totalQty > 1) return false;
+          return true;
+        });
       }
     } catch (e) {
       console.warn('Usando métodos padrão de contingência:', e);
@@ -186,7 +197,7 @@
     const listEl = document.getElementById('chk-shipping-list');
     if (!listEl) return;
 
-    if (!selectedShipping && shippingMethods.length > 0) {
+    if ((!selectedShipping || !shippingMethods.some(m => m.id === selectedShipping.id)) && shippingMethods.length > 0) {
       selectedShipping = shippingMethods[0];
     }
 
@@ -197,6 +208,9 @@
       const priceDisplay = isFree
         ? '<span class="chk-shipping-free-tag">Cortesia</span>'
         : fmtMoney(effectivePrice);
+      const singleItemTag = m.singleItemOnly
+        ? '<span class="chk-shipping-badge-single" style="display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#c9a84c;background:rgba(201,168,76,0.15);padding:1px 6px;border-radius:3px;border:1px solid rgba(201,168,76,0.3);letter-spacing:0.5px;text-transform:uppercase;">1 Peça</span>'
+        : '';
 
       return `
         <div class="chk-shipping-item ${isSelected ? 'selected' : ''}" data-ship-id="${escapeHtml(m.id)}">
@@ -205,7 +219,7 @@
               <span class="chk-radio-dot"></span>
             </div>
             <div class="chk-shipping-info">
-              <h4>${escapeHtml(m.name)}</h4>
+              <h4>${escapeHtml(m.name)}${singleItemTag}</h4>
               <p>${escapeHtml(m.deadline || 'Prazo rápido')}</p>
             </div>
           </div>
@@ -421,6 +435,8 @@
     const isFree = selectedShipping.freeAbove && subtotal >= selectedShipping.freeAbove;
     const effectiveShippingPrice = isFree ? 0 : Number(selectedShipping.price || 0);
 
+    const trackingData = window.nteTracking ? window.nteTracking.getTrackingData() : {};
+
     const payload = {
       customer: getCustomerPayload(),
       items: cartItems,
@@ -428,7 +444,8 @@
         ...selectedShipping,
         effectivePrice: effectiveShippingPrice
       },
-      value: fmtMoney(subtotal + effectiveShippingPrice)
+      value: fmtMoney(subtotal + effectiveShippingPrice),
+      tracking: trackingData
     };
 
     try {
@@ -474,6 +491,7 @@
     const isFree = selectedShipping.freeAbove && subtotal >= selectedShipping.freeAbove;
     const effectiveShippingPrice = isFree ? 0 : Number(selectedShipping.price || 0);
     const totalVal = fmtMoney(subtotal + effectiveShippingPrice);
+    const trackingData = window.nteTracking ? window.nteTracking.getTrackingData() : {};
 
     // Registra pedido prévio na API
     const orderCode = 'NTE-' + Math.floor(1000 + Math.random() * 9000);
@@ -491,7 +509,8 @@
         effectivePrice: effectiveShippingPrice
       },
       paymentMethod: 'whatsapp',
-      paymentStatus: 'pending'
+      paymentStatus: 'pending',
+      tracking: trackingData
     };
 
     try {

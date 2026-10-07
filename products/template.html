@@ -509,6 +509,7 @@
 <script src="js/menu.js?v=20260930"></script>
 <script src="js/db.js?v=20260930"></script>
 <script src="js/main.js?v=20260930"></script>
+<script src="/js/tracking.js?v=20261007"></script>
 
 <script>
 /* ── Product Page Logic ── */
@@ -782,6 +783,11 @@
     currentProduct = product;
     updateProductSeo(product);
 
+    // Rastreamento ViewContent oficial (Meta Ads / GA4)
+    if (window.nteTracking && typeof window.nteTracking.trackViewContent === 'function') {
+      window.nteTracking.trackViewContent(product);
+    }
+
     renderProductInfo(product);
     renderGallery(product);
     renderRelated(product.id);
@@ -793,7 +799,11 @@
     // reanexado a cada render. O anterior morre junto com o elemento antigo.
     if (addBtn) {
       addBtn.onclick = () => {
-        window.ntCart?.add({ ...currentProduct, size: selectedSize, color: selectedColor, qty: selectedQty });
+        const itemToAdd = { ...currentProduct, size: selectedSize, color: selectedColor, qty: selectedQty };
+        window.ntCart?.add(itemToAdd);
+        if (window.nteTracking && typeof window.nteTracking.trackAddToCart === 'function') {
+          window.nteTracking.trackAddToCart(itemToAdd);
+        }
       };
     }
     if (buyBtn) {

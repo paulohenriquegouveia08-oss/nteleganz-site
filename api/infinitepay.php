@@ -184,6 +184,9 @@ $orderRecord = [
     'paymentMethod' => 'infinitepay',
     'paymentStatus' => 'pending',
     'checkoutUrl' => $checkoutUrl,
+    'tracking' => is_array($data['tracking'] ?? null) ? $data['tracking'] : [],
+    'clientIp' => $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '',
+    'userAgent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
     'createdAt' => date('c'),
     'updatedAt' => date('c')
 ];

@@ -72,6 +72,14 @@ if ($orderId && $isApproved) {
         } catch (\Throwable $e) {
             // Log de erro de envio de e-mail silencioso
         }
+
+        // Dispara evento Purchase na API de Conversões da Meta (CAPI) para 100% de mensuração
+        try {
+            require_once __DIR__ . '/tracking.php';
+            sendMetaConversionsApiPurchase($orderData);
+        } catch (\Throwable $e) {
+            // Log silencioso CAPI
+        }
     }
 }
 

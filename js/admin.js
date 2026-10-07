@@ -165,6 +165,7 @@
     pedidos: 'Pedidos',
     clientes: 'Base de Clientes',
     leads: 'Leads do WhatsApp',
+    marketing: 'Marketing, Pixels & Tráfego',
     configuracoes: 'Configurações',
   };
 
@@ -200,6 +201,7 @@
         renderLeadsTable();
         markLeadsRead();
       }
+      if (panelId === 'marketing') loadTrackingSettings();
       if (panelId === 'configuracoes') loadSettings();
     } finally {
       cancelLoader();
@@ -1538,7 +1540,7 @@
       <div class="img-preview-item" style="position:relative;">
         <img src="${escHtml(image)}" alt="Foto ${index + 1} do produto" style="width:100%; height:100%; object-fit:cover; border-radius:8px;" />
         ${index === 0 
-          ? '<span class="img-preview-primary" style="position:absolute; top:6px; left:6px; background:#c9a84c; color:#000; font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px; text-transform:uppercase; z-index:2;">Principal</span>' 
+          ? '<span class="img-preview-primary" style="position:absolute; top:6px; left:6px; bottom:auto !important; right:auto !important; width:auto !important; height:auto !important; display:inline-block !important; background:#c9a84c; color:#000; font-size:9px; font-weight:800; padding:3px 7px; border-radius:4px; text-transform:uppercase; z-index:2; line-height:1.2 !important; box-shadow:0 2px 4px rgba(0,0,0,0.3);">Principal</span>' 
           : `<button type="button" class="btn btn-secondary btn-sm" onclick="setPrimaryProductImage(${index})" style="position:absolute; bottom:6px; left:6px; font-size:10px; padding:2px 6px; height:auto; background:rgba(0,0,0,0.8); color:#c9a84c; border:1px solid rgba(201,168,76,0.5); border-radius:4px; cursor:pointer; z-index:2;" title="Definir como foto principal na vitrine">Tornar Principal</button>`}
         <button type="button" class="img-preview-remove" onclick="removeProductImage(${index})" aria-label="Remover foto ${index + 1}" title="Excluir foto" style="z-index:3;">×</button>
       </div>
@@ -1640,8 +1642,15 @@
         </td>
         <td>${thumbHtml}</td>
         <td>
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
             ${o.source === 'site' ? '<span class="badge badge-gold" title="Pedido feito pelo site" style="font-size:10px; padding:1px 6px;">Site</span>' : ''}
+            ${(() => {
+              const trk = o.tracking || (o.raw_data && o.raw_data.tracking) || null;
+              if (!trk) return '';
+              const src = trk.utm_campaign || trk.utm_source || (trk.fbclid ? 'Meta Ads' : (trk.gclid ? 'Google Ads' : (trk.ttclid ? 'TikTok' : '')));
+              if (!src) return '';
+              return `<span class="badge" style="background:rgba(201,168,76,0.12); color:var(--gold,#c9a84c); border:1px solid rgba(201,168,76,0.25); font-size:10px; padding:1px 6px;" title="Campanha / Origem: ${escHtml(src)}">🎯 ${escHtml(src)}</span>`;
+            })()}
             <span style="color:var(--text-primary); font-weight:600; font-size:13px;">${escHtml(o.client || 'Cliente')}</span>
           </div>
           ${(() => {
@@ -1773,12 +1782,56 @@
       </div>
     ` : '';
 
+    const trackingCard = (() => {
+      const trk = orderData.tracking || (orderData.raw_data && orderData.raw_data.tracking) || null;
+      if (!trk) return '';
+      const hasAny = trk.utm_source || trk.utm_medium || trk.utm_campaign || trk.fbclid || trk.gclid || trk.ttclid || trk.referrer;
+      if (!hasAny) return '';
+
+      const utmSource = trk.utm_source || (trk.fbclid ? 'Meta / Instagram (fbclid)' : (trk.gclid ? 'Google Ads (gclid)' : (trk.ttclid ? 'TikTok Ads (ttclid)' : 'Direto')));
+      const utmMedium = trk.utm_medium || 'cpc / ads';
+      const utmCampaign = trk.utm_campaign || '—';
+      const utmContent = trk.utm_content || '—';
+      const utmTerm = trk.utm_term || '—';
+      const clickId = trk.fbclid ? `fbclid: ${trk.fbclid.slice(0, 16)}...` : (trk.gclid ? `gclid: ${trk.gclid.slice(0, 16)}...` : (trk.ttclid ? `ttclid: ${trk.ttclid.slice(0, 16)}...` : ''));
+
+      return `
+        <div style="background:var(--bg-hover, #f8f8f8); border:1px solid rgba(201,168,76,0.3); border-radius:12px; padding:14px 16px; margin:4px 0 16px 0;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold, #c9a84c); display:flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              <span>Origem de Tráfego & Campanha (Ads / UTMs)</span>
+            </div>
+            <span class="badge badge-gold" style="font-size:10px; padding:2px 8px;">Trackeado</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; font-size:12px;">
+            <div>
+              <span style="color:var(--text-muted); display:block; font-size:10px; text-transform:uppercase;">Origem (Source):</span>
+              <strong style="color:var(--text-primary);">${escHtml(utmSource)}</strong>
+            </div>
+            <div>
+              <span style="color:var(--text-muted); display:block; font-size:10px; text-transform:uppercase;">Mídia (Medium):</span>
+              <strong style="color:var(--text-primary);">${escHtml(utmMedium)}</strong>
+            </div>
+            <div>
+              <span style="color:var(--text-muted); display:block; font-size:10px; text-transform:uppercase;">Campanha:</span>
+              <strong style="color:var(--gold, #c9a84c);">${escHtml(utmCampaign)}</strong>
+            </div>
+            ${utmContent !== '—' ? `<div><span style="color:var(--text-muted); display:block; font-size:10px; text-transform:uppercase;">Conteúdo:</span><strong style="color:var(--text-primary);">${escHtml(utmContent)}</strong></div>` : ''}
+            ${utmTerm !== '—' ? `<div><span style="color:var(--text-muted); display:block; font-size:10px; text-transform:uppercase;">Termo:</span><strong style="color:var(--text-primary);">${escHtml(utmTerm)}</strong></div>` : ''}
+            ${clickId ? `<div><span style="color:var(--text-muted); display:block; font-size:10px; text-transform:uppercase;">Click ID:</span><span style="font-family:monospace; font-size:11px; color:var(--text-secondary);">${escHtml(clickId)}</span></div>` : ''}
+          </div>
+        </div>
+      `;
+    })();
+
     body.innerHTML = `
       <input type="hidden" id="order-edit-id" value="${orderId || ''}">
       <div style="display:grid; gap:16px;">
         ${headerPreview}
         ${itemsPreview}
         ${followUpCard}
+        ${trackingCard}
         <div class="form-grid">
           <div class="form-group form-col-full">
             <label>Nome do Cliente *</label>
@@ -2788,6 +2841,14 @@
             <input type="number" step="10" class="form-control" value="${m.freeAbove || ''}" placeholder="Deixe vazio se não houver" oninput="updateShippingField(${idx}, 'freeAbove', this.value ? parseFloat(this.value) : null)" />
           </div>
         </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px dashed var(--border-color, #e5e0d8);">
+          <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;background:${m.singleItemOnly ? 'rgba(201,168,76,0.15)' : '#fff'};padding:5px 12px;border-radius:6px;border:1px solid ${m.singleItemOnly ? '#c9a84c' : 'var(--border-color, #d5cfc5)'};color:${m.singleItemOnly ? '#855f17' : 'var(--text-secondary, #555)'};font-weight:600;transition:all 0.2s ease;">
+            <input type="checkbox" ${m.singleItemOnly ? 'checked' : ''} onchange="updateShippingField(${idx}, 'singleItemOnly', this.checked); renderAdminShippingMethods();" />
+            <span>Apenas para 1 peça</span>
+            <small style="font-size:10px;font-weight:400;color:var(--text-muted);">(Exclusivo para pedidos com apenas 1 item no carrinho)</small>
+          </label>
+          ${m.singleItemOnly ? '<span style="font-size:10px;background:#c9a84c;color:#000;font-weight:800;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;">1 Peça Apenas</span>' : ''}
+        </div>
       </div>
     `).join('');
   };
@@ -2799,7 +2860,8 @@
       price: 25.0,
       deadline: '3 a 5 dias úteis',
       freeAbove: null,
-      active: true
+      active: true,
+      singleItemOnly: false
     });
     renderAdminShippingMethods();
   };
@@ -2858,6 +2920,151 @@
       if (saveBtn) {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Salvar Formas de Envio';
+      }
+    }
+  };
+
+  // ── Marketing & Tracking (Pixels & Conversions API) ──
+  window.loadTrackingSettings = async function () {
+    const alertEl = document.getElementById('tracking-alert');
+    if (alertEl) alertEl.innerHTML = '';
+    try {
+      const token = window.ntAuth?.getToken?.() || '';
+      const res = await fetch('/api/tracking.php?admin=1', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        cache: 'no-store'
+      });
+      const data = await res.json();
+      if (data && data.success && data.settings) {
+        const s = data.settings;
+        setValue('meta-pixel-id', s.meta_pixel_id || '');
+        setValue('meta-capi-token', s.meta_capi_token || '');
+        setValue('meta-test-code', s.meta_test_event_code || '');
+        setValue('gtm-id', s.gtm_id || '');
+        setValue('ga4-id', s.ga4_id || '');
+        setValue('gads-id', s.google_ads_conversion_id || '');
+        setValue('gads-label', s.google_ads_conversion_label || '');
+        setValue('tiktok-pixel-id', s.tiktok_pixel_id || '');
+        const activeCheck = document.getElementById('tracking-active');
+        if (activeCheck) activeCheck.checked = s.active !== false;
+      }
+    } catch (err) {
+      console.warn('Erro ao carregar configurações de tracking:', err);
+    }
+  };
+
+  window.saveTrackingSettings = async function () {
+    const alertEl = document.getElementById('tracking-alert');
+    const saveBtn = document.getElementById('btn-save-tracking');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+    }
+
+    const payload = {
+      meta_pixel_id: document.getElementById('meta-pixel-id')?.value.trim() || '',
+      meta_capi_token: document.getElementById('meta-capi-token')?.value.trim() || '',
+      meta_test_event_code: document.getElementById('meta-test-code')?.value.trim() || '',
+      gtm_id: document.getElementById('gtm-id')?.value.trim() || '',
+      ga4_id: document.getElementById('ga4-id')?.value.trim() || '',
+      google_ads_conversion_id: document.getElementById('gads-id')?.value.trim() || '',
+      google_ads_conversion_label: document.getElementById('gads-label')?.value.trim() || '',
+      tiktok_pixel_id: document.getElementById('tiktok-pixel-id')?.value.trim() || '',
+      active: document.getElementById('tracking-active')?.checked ?? true
+    };
+
+    try {
+      const token = window.ntAuth?.getToken?.() || '';
+      const res = await fetch('/api/tracking.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (alertEl) {
+          alertEl.innerHTML = `
+            <div class="alert alert-success" style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;margin-bottom:16px;background:rgba(39,174,96,0.12);color:#27ae60;border:1px solid rgba(39,174,96,0.3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Configurações de tráfego e pixels salvas com sucesso! O rastreamento já está ativo na loja.</span>
+            </div>
+          `;
+        }
+        showToast('check', 'Pixels Salvos!', 'Rastreamento atualizado com sucesso.');
+      } else {
+        throw new Error(data.error || 'Erro ao salvar configurações.');
+      }
+    } catch (err) {
+      if (alertEl) {
+        alertEl.innerHTML = `
+          <div class="alert alert-danger" style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;margin-bottom:16px;background:rgba(235,87,87,0.12);color:#eb5757;border:1px solid rgba(235,87,87,0.3);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Falha ao salvar: ${err.message}</span>
+          </div>
+        `;
+      }
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar Configurações de Tráfego';
+      }
+    }
+  };
+
+  window.testMetaCapi = async function () {
+    const testResultEl = document.getElementById('meta-test-result');
+    const testBtn = document.getElementById('btn-test-capi');
+    if (testBtn) {
+      testBtn.disabled = true;
+      testBtn.textContent = 'Enviando disparo teste...';
+    }
+    if (testResultEl) {
+      testResultEl.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">Enviando evento de teste para a Graph API da Meta...</span>';
+    }
+
+    try {
+      const token = window.ntAuth?.getToken?.() || '';
+      const res = await fetch('/api/tracking.php?test=meta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({
+          clientName: 'Teste Gestor Tráfego',
+          email: 'teste.gestor@nteleganz.com.br',
+          phone: '11999998888'
+        })
+      });
+      const data = await res.json();
+      const capiRes = data.capi_result;
+      if (capiRes && capiRes.success) {
+        testResultEl.innerHTML = `
+          <div style="background:rgba(39,174,96,0.1); border:1px solid rgba(39,174,96,0.3); color:#27ae60; padding:10px 14px; border-radius:6px; font-size:12px; margin-top:10px;">
+            <strong>✓ Sucesso!</strong> Evento Purchase recebido pelos servidores da Meta (HTTP ${capiRes.http_code}).
+            <br><small style="opacity:0.85;">Event ID: ${capiRes.event_id}. Se você inseriu o Código de Teste, o evento já apareceu na aba "Testar Eventos" do Gerenciador de Eventos da Meta.</small>
+          </div>
+        `;
+      } else {
+        const errMsg = capiRes?.response?.error?.message || capiRes?.reason || 'Falha no teste';
+        testResultEl.innerHTML = `
+          <div style="background:rgba(235,87,87,0.1); border:1px solid rgba(235,87,87,0.3); color:#eb5757; padding:10px 14px; border-radius:6px; font-size:12px; margin-top:10px;">
+            <strong>✕ Erro na API da Meta:</strong> ${errMsg}
+            <br><small style="opacity:0.85;">Certifique-se de salvar o Pixel ID e o Token da API de Conversões antes de testar.</small>
+          </div>
+        `;
+      }
+    } catch (err) {
+      if (testResultEl) {
+        testResultEl.innerHTML = `<div style="color:#eb5757; font-size:12px; margin-top:8px;">Erro na requisição: ${err.message}</div>`;
+      }
+    } finally {
+      if (testBtn) {
+        testBtn.disabled = false;
+        testBtn.textContent = 'Testar Disparo na API da Meta (CAPI)';
       }
     }
   };

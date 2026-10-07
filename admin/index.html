@@ -8,7 +8,7 @@
   <link rel="icon" type="image/webp" href="../assets/images/logonz.webp?v=20260930" />
   <link rel="apple-touch-icon" href="../assets/images/logonz-400.webp" />
   <link rel="manifest" href="/manifest.json" />
-  <link rel="stylesheet" href="../css/admin.css?v=20261003g" />
+  <link rel="stylesheet" href="../css/admin.css?v=20261007b" />
 <script src="/js/image-compat.js" defer></script>
 <style>
 .admin-loader{position:fixed;inset:0;background:var(--bg-primary,#080808);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;opacity:1;transition:opacity .3s ease,visibility .3s ease;color:var(--text-primary,#f2efe9)}
@@ -71,6 +71,11 @@
       <div class="nav-item" data-panel="leads" onclick="showPanel('leads', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
         <span>Leads</span><b class="nav-notification" id="leads-nav-badge" hidden>0</b>
+      </div>
+
+      <div class="nav-item" data-panel="marketing" onclick="showPanel('marketing', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/><path d="M3 20h18"/></svg>
+        <span>Marketing & Tráfego</span>
       </div>
 
       <div class="nav-section-label">Sistema</div>
@@ -692,6 +697,152 @@
         </div>
       </div>
 
+      <!-- ══════════════════════════════════════════
+           PANEL: MARKETING & TRÁFEGO
+      ══════════════════════════════════════════ -->
+      <div id="panel-marketing" class="admin-panel">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h2 style="font-size:18px; font-weight:700; margin:0 0 4px; color:var(--text-primary);">Configurações de Tráfego & Pixels</h2>
+            <p style="font-size:12px; color:var(--text-muted); margin:0;">
+              Estrutura de alta performance para o gestor de tráfego. Suporte a Meta Ads (Pixel + API de Conversões CAPI), Google Ads, GA4, GTM e TikTok.
+            </p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <label style="display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+              <input type="checkbox" id="tracking-active" checked style="width:16px; height:16px; accent-color:var(--gold);" />
+              Rastreamento Ativo
+            </label>
+            <button type="button" class="btn btn-primary" id="btn-save-tracking" onclick="saveTrackingSettings()">
+              Salvar Configurações de Tráfego
+            </button>
+          </div>
+        </div>
+
+        <div id="tracking-alert"></div>
+
+        <div class="settings-grid">
+
+          <!-- Card 1: Meta Ads (Facebook & Instagram) -->
+          <div class="settings-card" style="grid-column: 1 / -1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <div class="settings-card-title" style="margin:0;">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px; height:20px; color:#1877f2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Meta Ads (Facebook & Instagram) • Pixel + Conversions API (CAPI)
+              </div>
+              <span class="badge badge-gold" style="font-size:10px;">Recomendado • Suporte a iOS 14+</span>
+            </div>
+            <div class="settings-card-desc">
+              O evento <strong>Purchase</strong> dispara no navegador e também direto no servidor via API de Conversões da Meta no momento em que a InfinitePay aprova o pagamento. Garante 100% de mensuração para pagamentos Pix e Cartão.
+            </div>
+
+            <div class="settings-form">
+              <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                <div class="form-group">
+                  <label>Meta Pixel ID *</label>
+                  <input type="text" class="form-control" id="meta-pixel-id" placeholder="Ex: 123456789012345" />
+                  <small class="form-hint">Encontrado no Gerenciador de Eventos da Meta.</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Código de Teste de Evento (Opcional)</label>
+                  <input type="text" class="form-control" id="meta-test-code" placeholder="Ex: TEST12345" />
+                  <small class="form-hint">Aba "Testar eventos" no Gerenciador de Eventos (apague após validar).</small>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top:10px;">
+                <label>Token de Acesso da API de Conversões (CAPI) *</label>
+                <textarea class="form-control" id="meta-capi-token" rows="2" style="font-family:monospace; font-size:11px;" placeholder="EAAB... (Gere em Configurações do Pixel > API de Conversões > Gerar token de acesso)"></textarea>
+                <small class="form-hint">Chave de acesso do sistema da Meta para envio direto pelo servidor.</small>
+              </div>
+
+              <div style="margin-top:12px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-test-capi" onclick="testMetaCapi()">
+                  Testar Disparo na API da Meta (CAPI)
+                </button>
+                <div id="meta-test-result" style="flex:1;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Google Ecosystem (GTM, GA4, Google Ads) -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px; height:20px; color:#4285f4;"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg>
+              Google Tag Manager & GA4
+            </div>
+            <div class="settings-card-desc">Integre seu contêiner do GTM ou adicione diretamente a medição do GA4.</div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label>ID do Google Tag Manager (GTM)</label>
+                <input type="text" class="form-control" id="gtm-id" placeholder="GTM-XXXXXXX" />
+                <small class="form-hint">Se preenchido, você pode gerenciar todas as tags direto pelo GTM.</small>
+              </div>
+
+              <div class="form-group">
+                <label>ID do Google Analytics 4 (GA4)</label>
+                <input type="text" class="form-control" id="ga4-id" placeholder="G-XXXXXXXXXX" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Google Ads & TikTok Ads -->
+          <div class="settings-card">
+            <div class="settings-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              Google Ads & TikTok Ads
+            </div>
+            <div class="settings-card-desc">Acompanhe conversões de compra nas campanhas do Google e TikTok Ads.</div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label>ID de Conversão Google Ads</label>
+                <input type="text" class="form-control" id="gads-id" placeholder="AW-XXXXXXXXXX" />
+              </div>
+
+              <div class="form-group">
+                <label>Rótulo de Conversão (Label)</label>
+                <input type="text" class="form-control" id="gads-label" placeholder="Ex: AbCdEfGhIjKlMnOpQr" />
+              </div>
+
+              <div class="form-group">
+                <label>TikTok Pixel ID</label>
+                <input type="text" class="form-control" id="tiktok-pixel-id" placeholder="Ex: CXXXXXXXXXXXXXXXXX" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Guia de UTMs & Rastreamento Automático -->
+          <div class="settings-card" style="grid-column: 1 / -1;">
+            <div class="settings-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Guia de UTMs & Campanhas para o Gestor de Tráfego
+            </div>
+            <div class="settings-card-desc">
+              O sistema NT Eleganz captura e anexa automaticamente todos os parâmetros de anúncio ao pedido.
+            </div>
+
+            <div style="background:var(--bg-card); padding:16px; border-radius:8px; border:1px solid var(--border); font-size:12px; line-height:1.6; color:var(--text-secondary);">
+              <div style="margin-bottom:8px; font-weight:700; color:var(--text-primary);">Parâmetros capturados e gravados no pedido:</div>
+              <ul style="margin:0 0 12px 18px; padding:0;">
+                <li><code>utm_source</code>: Origem da visita (ex: <code>instagram</code>, <code>facebook</code>, <code>google</code>)</li>
+                <li><code>utm_medium</code>: Tipo de mídia (ex: <code>stories</code>, <code>reels</code>, <code>cpc</code>)</li>
+                <li><code>utm_campaign</code>: Nome da campanha (ex: <code>colecao_ralph_lauren_inverno</code>)</li>
+                <li><code>utm_content</code>: Criativo / anúncio (ex: <code>video_carrossel_01</code>)</li>
+                <li><code>fbclid</code> / <code>gclid</code> / <code>ttclid</code>: IDs de clique para correspondência avançada (Match Quality da Meta)</li>
+              </ul>
+              <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px;">Exemplo de Link para o Gestor colar nos anúncios:</div>
+              <div style="background:#0a0a0a; color:#f5f3ef; padding:10px 14px; border-radius:6px; font-family:monospace; word-break:break-all; font-size:11px;">
+                https://nteleganz.com.br/collections/?utm_source=instagram&utm_medium=stories&utm_campaign=grifes_autenticas&utm_content=video_01
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
   </div>
 </div>
@@ -892,9 +1043,9 @@
 </div>
 
 <!-- Scripts -->
-<script src="../js/auth.js?v=20261007"></script>
-<script src="../js/db.js?v=20261007"></script>
-<script src="../js/admin.js?v=20261007"></script>
+<script src="../js/auth.js?v=20261007b"></script>
+<script src="../js/db.js?v=20261007b"></script>
+<script src="../js/admin.js?v=20261007b"></script>
 <script>
   function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');

@@ -27,7 +27,8 @@ function defaultShippingMethods(): array {
             'price' => 38.00,
             'deadline' => '2 a 4 dias úteis',
             'freeAbove' => 1000.00,
-            'active' => true
+            'active' => true,
+            'singleItemOnly' => false
         ],
         [
             'id' => 'pac',
@@ -35,7 +36,8 @@ function defaultShippingMethods(): array {
             'price' => 22.00,
             'deadline' => '5 a 8 dias úteis',
             'freeAbove' => 600.00,
-            'active' => true
+            'active' => true,
+            'singleItemOnly' => false
         ],
         [
             'id' => 'concierge',
@@ -43,7 +45,8 @@ function defaultShippingMethods(): array {
             'price' => 60.00,
             'deadline' => 'Até 24h ou horário agendado',
             'freeAbove' => null,
-            'active' => true
+            'active' => true,
+            'singleItemOnly' => false
         ]
     ];
 }
@@ -102,6 +105,7 @@ if ($method === 'POST') {
             ? (float)$m['freeAbove']
             : null;
         $active = !isset($m['active']) || (bool)$m['active'];
+        $singleItemOnly = !empty($m['singleItemOnly']);
 
         $sanitized[] = [
             'id' => $id,
@@ -109,7 +113,8 @@ if ($method === 'POST') {
             'price' => $price,
             'deadline' => $deadline,
             'freeAbove' => $freeAbove,
-            'active' => $active
+            'active' => $active,
+            'singleItemOnly' => $singleItemOnly
         ];
     }
 
