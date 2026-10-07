@@ -242,11 +242,12 @@
     const badgeClass = p.badge === 'OFERTA' ? 'catalog-card__badge--sale' : p.badge === 'LUXO' ? 'catalog-card__badge--new' : '';
     const brand = esc(p.brand || '');
     const name = esc(p.name || '');
+    const rawImg = p.image || (Array.isArray(p.images) && p.images[0]) || '';
     const productUrl = (window.ntWpp?.getProductUrl ? window.ntWpp.getProductUrl(p) : `/products/?id=${esc(p.id)}`);
     return `
       <article class="catalog-card ${isOutOfStock ? 'is-out-of-stock' : ''}" role="listitem" data-product-id="${esc(p.id)}">
         <a href="${productUrl}" class="catalog-card__img-wrap" aria-label="Ver ${name}">
-          <img src="${esc(p.image)}"${cardSrcset(p.image)} alt="${brand} — ${name}" loading="lazy" decoding="async"
+          <img src="${esc(rawImg)}"${cardSrcset(rawImg)} alt="${brand} — ${name}" loading="lazy" decoding="async"
             style="${isOutOfStock ? 'filter: grayscale(100%); opacity: 0.6;' : ''}"
             onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}" />
           ${isOutOfStock

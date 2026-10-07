@@ -90,15 +90,48 @@ if (is_array($shipping) && !empty($shipping['price']) && (float)$shipping['price
     $totalCents += $shippingCents;
 }
 
+// Formata telefone para o padrão E.164 exigido pela InfinitePay (+55...)
+$rawPhone = preg_replace('/\D/', '', (string)($customer['phone'] ?? ''));
+if (strlen($rawPhone) === 10 || strlen($rawPhone) === 11) {
+    $formattedPhone = '+55' . $rawPhone;
+} elseif (strlen($rawPhone) > 11) {
+    $formattedPhone = '+' . $rawPhone;
+} else {
+    $formattedPhone = '';
+}
+
+$infiniteCustomer = [
+    'name' => trim((string)($customer['name'] ?? '')),
+    'email' => trim((string)($customer['email'] ?? ''))
+];
+if ($formattedPhone !== '') {
+    $infiniteCustomer['phone_number'] = $formattedPhone;
+}
+
+// Endereço de entrega para pré-preenchimento
+$addr = is_array($customer['address'] ?? null) ? $customer['address'] : [];
+$cleanCep = preg_replace('/\D/', '', (string)($addr['cep'] ?? ''));
+
+$infiniteAddress = [
+    'cep' => $cleanCep,
+    'street' => trim((string)($addr['street'] ?? '')),
+    'neighborhood' => trim((string)($addr['neighborhood'] ?? '')),
+    'number' => trim((string)($addr['number'] ?? '')),
+    'complement' => trim((string)($addr['complement'] ?? ''))
+];
+
 $redirectUrl = "https://nteleganz.com.br/pedido/?code={$orderCode}";
 $webhookUrl = "https://nteleganz.com.br/api/infinitepay_webhook.php";
 
 $payload = [
     'handle' => INFINITE_HANDLE,
     'items' => $infiniteItems,
+    'order_nsu' => $orderCode,
+    'order_id' => $orderCode,
     'redirect_url' => $redirectUrl,
     'webhook_url' => $webhookUrl,
-    'order_id' => $orderCode
+    'customer' => $infiniteCustomer,
+    'address' => $infiniteAddress
 ];
 
 // Chamada para a API Oficial da InfinitePay
@@ -131,7 +164,7 @@ if (!$checkoutUrl || $httpCode >= 400) {
     exit;
 }
 
-// Salva o pedido localmente e na VPS
+// Salva o pedido localmente e na VPS como 'novo' / 'pending'
 $formattedTotal = 'R$ ' . number_format($totalCents / 100, 2, ',', '.');
 $orderRecord = [
     'id' => 'ord_' . time() . '_' . substr(md5($orderCode), 0, 5),
@@ -163,12 +196,7 @@ curl_setopt_array($chOrder, [
 @curl_exec($chOrder);
 @curl_close($chOrder);
 
-// Dispara e-mail de confirmação de pedido para o cliente
-try {
-    sendOrderConfirmationEmail($orderRecord);
-} catch (\Throwable $e) {
-    // E-mail em segundo plano não interrompe a jornada de compra
-}
+// Nota: o e-mail de confirmação é disparado exclusivamente pelo webhook após a aprovação do pagamento.
 
 echo json_encode([
     'success' => true,

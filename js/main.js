@@ -178,14 +178,15 @@
 
   function renderProductCard(product) {
     const isOutOfStock = (product.stock !== undefined && Number(product.stock) <= 0) || product.inStock === false || product.available === false;
-    const image = escHtml(product.image);
+    const rawImage = product.image || (Array.isArray(product.images) && product.images[0]) || '';
+    const image = escHtml(rawImage);
     const brand = escHtml(product.brand || '');
     const name = escHtml(product.name || '');
     const productUrl = (window.ntWpp?.getProductUrl ? window.ntWpp.getProductUrl(product) : `/products/?id=${escHtml(product.id)}`);
     return `
       <a class="product-card ${isOutOfStock ? 'is-out-of-stock' : ''}" href="${productUrl}" data-product-id="${escHtml(product.id)}" aria-label="Ver ${name}">
         <div class="product-card__image-wrap">
-          <img src="${image}"${respSrcset(product.image)} alt="${brand} ${name}" loading="lazy" decoding="async"
+          <img src="${image}"${respSrcset(rawImage)} alt="${brand} ${name}" loading="lazy" decoding="async"
             style="${isOutOfStock ? 'filter: grayscale(100%); opacity: 0.6;' : ''}"
             onerror="if(!this.dataset.triedVps){this.dataset.triedVps='1';this.src='https://137-131-233-254.sslip.io/nteleganz/uploads/'+this.src.split('/').pop().split('?')[0];}">
           ${isOutOfStock ? '<span class="product-card__badge badge-out-of-stock" style="display:inline-flex !important; position:absolute; top:12px; left:12px; background:#dc2626 !important; color:#ffffff !important; font-size:11px !important; font-weight:700 !important; letter-spacing:0.8px !important; padding:4px 10px !important; border-radius:4px !important; text-transform:uppercase !important; z-index:5 !important; box-shadow:0 2px 6px rgba(0,0,0,0.3) !important;">ESGOTADO</span>' : (product.badge ? `<span class="product-card__badge">${escHtml(product.badge)}</span>` : '')}

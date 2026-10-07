@@ -1237,24 +1237,26 @@
     syncImageUrls();
 
     const productId = id || (Date.now().toString(36) + Math.random().toString(36).slice(2));
+    const saveButton = document.getElementById('product-save-button');
     const storedImages = [];
-    const uploadWarnings = [];
     for (let i = 0; i < pendingImages.length; i++) {
       const image = pendingImages[i];
-      if (image.startsWith('data:image/')) {
+      if (typeof image === 'string' && image.startsWith('data:image/')) {
         try {
-          storedImages.push(await uploadProductImage(image, productId, i));
+          if (saveButton) { saveButton.disabled = true; saveButton.textContent = `Enviando foto ${i + 1} de ${pendingImages.length}…`; }
+          const uploadedUrl = await uploadProductImage(image, productId, i);
+          storedImages.push(uploadedUrl);
         } catch (error) {
-          storedImages.push(image);
-          uploadWarnings.push(`Foto ${i + 1}: ${error.message}`);
+          console.error(`Erro ao subir foto ${i + 1}:`, error);
+          alert(`Não foi possível enviar a foto ${i + 1}: ${error.message}\nVerifique sua conexão ou tente novamente. O produto não foi salvo para evitar imagens quebradas.`);
+          if (saveButton) { saveButton.disabled = false; saveButton.textContent = 'Salvar Produto'; }
+          return;
         }
-      } else {
-        storedImages.push(image);
+      } else if (typeof image === 'string' && image.trim().length > 0) {
+        if (!image.startsWith('data:image/')) {
+          storedImages.push(image.trim());
+        }
       }
-    }
-    if (uploadWarnings.length) {
-      console.warn('Algumas fotos ficaram em base64:', uploadWarnings);
-      alert('Algumas fotos não puderam ser enviadas e foram mantidas em base64.\n• ' + uploadWarnings.join('\n• '));
     }
 
     const rawName = getVal('p-name');
@@ -1293,8 +1295,7 @@
     }
 
     try {
-      const saveButton = document.getElementById('product-save-button');
-      if (saveButton) { saveButton.disabled = true; saveButton.textContent = 'Salvando…'; }
+      if (saveButton) { saveButton.disabled = true; saveButton.textContent = 'Salvando produto…'; }
       let savedProduct;
       if (id) {
         savedProduct = await window.ntDB.products.update(id, productData);
@@ -1475,10 +1476,20 @@
 
   async function getUploadAuthHeader() {
     try {
+      const localToken = localStorage.getItem('nte_admin_token') || (window.ntAuth?.getToken && window.ntAuth.getToken());
+      if (localToken) {
+        return {
+          Authorization: `Bearer ${localToken}`,
+          'X-Upload-Token': localToken
+        };
+      }
       const client = window.ntAuth?.getClient && await window.ntAuth.getClient();
       const session = client?.auth?.getSession && await client.auth.getSession();
       const token = session?.data?.session?.access_token;
-      return token ? { Authorization: `Bearer ${token}` } : null;
+      return token ? {
+        Authorization: `Bearer ${token}`,
+        'X-Upload-Token': token
+      } : null;
     } catch (error) {
       console.warn('Sem sessão para autenticar o upload:', error);
       return null;
@@ -1486,14 +1497,17 @@
   }
 
   async function uploadProductImage(dataUrl, productId, index) {
-    const baseUrl = window.location.origin;
-    const uploadEndpoint = `${baseUrl}/upload.php`;
+    const uploadEndpoint = '/upload.php';
     const authHeader = await getUploadAuthHeader();
+    const token = localStorage.getItem('nte_admin_token') || (window.ntAuth?.getToken && window.ntAuth.getToken()) || '';
+    
+    const headers = { 'Content-Type': 'application/json' };
+    if (authHeader) Object.assign(headers, authHeader);
     
     const response = await fetch(uploadEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(authHeader || {}) },
-      body: JSON.stringify({ image: dataUrl, productId, index })
+      headers,
+      body: JSON.stringify({ image: dataUrl, productId, index, token })
     });
     
     const result = await response.json();
@@ -1521,13 +1535,22 @@
     const grid = document.getElementById('img-preview-grid');
     if (!grid) return;
     grid.innerHTML = pendingImages.map((image, index) => `
-      <div class="img-preview-item">
-        <img src="${escHtml(image)}" alt="Foto ${index + 1} do produto" />
-        ${index === 0 ? '<span class="img-preview-primary">Principal</span>' : ''}
-        <button type="button" class="img-preview-remove" onclick="removeProductImage(${index})" aria-label="Remover foto ${index + 1}">×</button>
+      <div class="img-preview-item" style="position:relative;">
+        <img src="${escHtml(image)}" alt="Foto ${index + 1} do produto" style="width:100%; height:100%; object-fit:cover; border-radius:8px;" />
+        ${index === 0 
+          ? '<span class="img-preview-primary" style="position:absolute; top:6px; left:6px; background:#c9a84c; color:#000; font-size:10px; font-weight:800; padding:2px 6px; border-radius:4px; text-transform:uppercase; z-index:2;">Principal</span>' 
+          : `<button type="button" class="btn btn-secondary btn-sm" onclick="setPrimaryProductImage(${index})" style="position:absolute; bottom:6px; left:6px; font-size:10px; padding:2px 6px; height:auto; background:rgba(0,0,0,0.8); color:#c9a84c; border:1px solid rgba(201,168,76,0.5); border-radius:4px; cursor:pointer; z-index:2;" title="Definir como foto principal na vitrine">Tornar Principal</button>`}
+        <button type="button" class="img-preview-remove" onclick="removeProductImage(${index})" aria-label="Remover foto ${index + 1}" title="Excluir foto" style="z-index:3;">×</button>
       </div>
     `).join('');
   }
+
+  window.setPrimaryProductImage = function (index) {
+    if (index <= 0 || index >= pendingImages.length) return;
+    const [selected] = pendingImages.splice(index, 1);
+    pendingImages.unshift(selected);
+    renderImagePreviews();
+  };
 
   window.handleImageUpload = async function (e) {
     const files = [...(e.target.files || [])];
@@ -1559,9 +1582,10 @@
   window.previewImageUrl = function () { syncImageUrls(); };
 
   window.removeProductImage = function (index) {
-    pendingImages.splice(index, 1);
-    setValue('p-image-url', pendingImages.filter(image => !image.startsWith('data:image/')).join('\n'));
-    renderImagePreviews();
+    if (index >= 0 && index < pendingImages.length) {
+      pendingImages.splice(index, 1);
+      renderImagePreviews();
+    }
   };
 
   // ══════════════════════════════════════════

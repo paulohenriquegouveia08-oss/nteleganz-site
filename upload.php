@@ -37,7 +37,10 @@ if (!rateLimitOk()) {
     respond(429, 'Muitos uploads feitos agora. Tente novamente em alguns minutos.');
 }
 
-$token = bearerToken();
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+$token = bearerToken($data);
 if (!$token) {
     respond(401, 'Acesso não autenticado: informe a sessão do administrador.');
 }
@@ -53,9 +56,6 @@ if (!$isAdmin) {
         respond(403, 'Acesso negado: apenas administradores podem enviar imagens.');
     }
 }
-
-$input = file_get_contents('php://input');
-$data = json_decode($input, true);
 
 if (!isset($data['image'], $data['productId'], $data['index'])) {
     respond(400, 'Dados inválidos: image, productId e index são obrigatórios');
@@ -174,11 +174,14 @@ function requestHeader($name) {
     return '';
 }
 
-function bearerToken() {
+function bearerToken($data = null) {
     $header = requestHeader('Authorization');
     if (preg_match('/^Bearer\s+(\S+)$/i', $header, $match)) return $match[1];
     $token = requestHeader('X-Upload-Token');
-    return $token !== '' ? $token : null;
+    if ($token !== '') return $token;
+    if (is_array($data) && !empty($data['token'])) return trim((string)$data['token']);
+    if (!empty($_GET['token'])) return trim((string)$_GET['token']);
+    return null;
 }
 
 function supabaseRequest($path, $token, $query = '') {

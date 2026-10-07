@@ -52,6 +52,27 @@ if ($orderId && $isApproved) {
     ]);
     @curl_exec($ch);
     @curl_close($ch);
+
+    // Dispara e-mail oficial de confirmação de compra após pagamento aprovado
+    require_once __DIR__ . '/send_order_email.php';
+    $chGet = curl_init("https://nteleganz.com.br/api/orders.php?code={$cleanCode}");
+    curl_setopt_array($chGet, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 5,
+        CURLOPT_HTTPHEADER => ['Accept: application/json']
+    ]);
+    $resGet = @curl_exec($chGet);
+    @curl_close($chGet);
+    $orderObj = $resGet ? json_decode($resGet, true) : null;
+    $orderData = $orderObj['order'] ?? $orderObj ?? null;
+
+    if (is_array($orderData)) {
+        try {
+            sendOrderConfirmationEmail($orderData);
+        } catch (\Throwable $e) {
+            // Log de erro de envio de e-mail silencioso
+        }
+    }
 }
 
 http_response_code(200);

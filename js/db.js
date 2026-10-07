@@ -130,10 +130,20 @@
 
   async function getSupabaseAuthHeader() {
     try {
+      const localToken = localStorage.getItem('nte_admin_token') || (window.ntAuth?.getToken && window.ntAuth.getToken());
+      if (localToken) {
+        return {
+          Authorization: `Bearer ${localToken}`,
+          'X-Upload-Token': localToken
+        };
+      }
       const client = window.ntAuth?.getClient && await window.ntAuth.getClient();
       const session = client?.auth?.getSession && await client.auth.getSession();
       const token = session?.data?.session?.access_token;
-      return token ? { Authorization: `Bearer ${token}` } : null;
+      return token ? {
+        Authorization: `Bearer ${token}`,
+        'X-Upload-Token': token
+      } : null;
     } catch (error) {
       console.warn('Sem sessão para autenticar o upload:', error);
       return null;
@@ -141,14 +151,17 @@
   }
 
   async function uploadImageToServer(dataUrl, productId, index) {
-    const baseUrl = window.location.origin;
-    const uploadEndpoint = `${baseUrl}/upload.php`;
+    const uploadEndpoint = '/upload.php';
     const authHeader = await getSupabaseAuthHeader();
+    const token = localStorage.getItem('nte_admin_token') || (window.ntAuth?.getToken && window.ntAuth.getToken()) || '';
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authHeader) Object.assign(headers, authHeader);
 
     const response = await fetch(uploadEndpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(authHeader || {}) },
-      body: JSON.stringify({ image: dataUrl, productId, index })
+      headers,
+      body: JSON.stringify({ image: dataUrl, productId, index, token })
     });
 
     const result = await response.json();

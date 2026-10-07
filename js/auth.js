@@ -231,6 +231,7 @@
     changePassword,
     changeUsername,
     getClient,
+    getToken: () => localStorage.getItem('nte_admin_token') || '',
     getUsername: () => currentUser?.name || currentUser?.email || currentUser?.username || 'Admin',
     getUser: () => currentUser
   };

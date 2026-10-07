@@ -414,16 +414,11 @@
     isOpen ? closeCart() : openCart();
   }
 
-  // ── Checkout Oficial NT Eleganz (InfinitePay / Luxo) ──
+  // ── Checkout Oficial NT Eleganz (Página Separada) ──
   function checkout() {
     if (cartItems.length === 0) return;
-    const total = formatCurrency(getTotal());
     closeCart();
-    if (window.nteCheckout && typeof window.nteCheckout.open === 'function') {
-      window.nteCheckout.open(cartItems, total);
-    } else if (window.ntWpp?.checkout) {
-      window.ntWpp.checkout(cartItems, total);
-    }
+    window.location.href = '/checkout/';
   }
 
   // ── Toast notification ──
