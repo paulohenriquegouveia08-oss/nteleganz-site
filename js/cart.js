@@ -419,8 +419,16 @@
     isOpen ? closeCart() : openCart();
   }
 
-  // ── Checkout Oficial NT Eleganz (Página Separada) ──
+  // ── Checkout via WhatsApp (Padrão) ──
   function checkout() {
+    if (cartItems.length === 0) return;
+    const total = formatCurrency(getTotal());
+    window.ntWpp?.checkout(cartItems, total);
+    closeCart();
+  }
+
+  // ── Checkout Online NT Eleganz (Preservado para uso futuro / InfinitePay) ──
+  function checkoutOnline() {
     if (cartItems.length === 0) return;
     closeCart();
     window.location.href = '/checkout/';
@@ -498,6 +506,7 @@
     close: closeCart,
     toggle: toggleCart,
     checkout,
+    checkoutOnline,
     items: () => cartItems,
     defaultVariant,
     showToast,
