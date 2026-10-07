@@ -567,6 +567,25 @@
               </div>
               <button class="btn btn-primary" onclick="saveWhatsApp()">Salvar WhatsApp</button>
             </div>
+          <!-- Formas de Envio & Frete (Checkout de Luxo) -->
+          <div class="settings-card" style="grid-column: 1 / -1;" id="shipping-settings-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+              <div>
+                <div class="settings-card-title" style="margin-bottom:4px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;display:inline-block;vertical-align:middle;margin-right:6px;"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  Formas de Envio & Frete (Checkout de Luxo)
+                </div>
+                <div class="settings-card-desc" style="margin-bottom:0;">Gerencie métodos de entrega exibidos no checkout (Sedex, PAC, VIP Concierge, etc.). Salvo de forma dinâmica no servidor.</div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addNewShippingMethod()">+ Nova Forma de Envio</button>
+            </div>
+            <div id="shipping-alert"></div>
+            <div id="shipping-methods-container" style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+              <div style="color:var(--text-muted);font-size:13px;">Carregando formas de envio...</div>
+            </div>
+            <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+              <button type="button" class="btn btn-primary" id="btn-save-shipping" onclick="saveAllShippingMethods()">Salvar Formas de Envio</button>
+            </div>
           </div>
 
           <!-- Banco de Dados -->

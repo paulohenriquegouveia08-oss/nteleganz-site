@@ -61,7 +61,10 @@ function callVpsApi(string $method, string $path, ?array $body = null, ?string $
     $ch = curl_init($url);
     if (!$ch) return null;
 
-    $headers = ['Accept: application/json'];
+    $headers = [
+        'Accept: application/json',
+        'X-NTE-Secret: nte_sec_2026_isolated_vault'
+    ];
     if ($body !== null) {
         $headers[] = 'Content-Type: application/json';
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
@@ -158,31 +161,7 @@ if ($method === 'GET' || $method === 'HEAD') {
             respond(200, null, ['product' => $vps['product'], 'version' => $version]);
         }
         if (isset($vps['products']) && is_array($vps['products'])) {
-            // Reconciliação de Segurança: se o arquivo local da Hostinger contiver produtos
-            // adicionados antes do deploy que ainda não existem no PostgreSQL da VPS, migra para a VPS automaticamente!
-            $localCatalog = readCatalog();
-            if ($localCatalog !== null && !empty($localCatalog['products']) && is_array($localCatalog['products'])) {
-                $vpsIds = array_column($vps['products'], 'id');
-                $vpsIdMap = array_flip($vpsIds);
-                $hasMissing = false;
-
-                foreach ($localCatalog['products'] as $localProd) {
-                    $lId = trim((string)($localProd['id'] ?? ''));
-                    if ($lId !== '' && !isset($vpsIdMap[$lId])) {
-                        // Envia o produto pendente para o PostgreSQL na VPS
-                        $saved = callVpsApi('POST', '/products', $localProd);
-                        if ($saved !== null && isset($saved['product'])) {
-                            $vps['products'][] = $saved['product'];
-                        } else {
-                            $vps['products'][] = $localProd;
-                        }
-                        $hasMissing = true;
-                    }
-                }
-                if ($hasMissing) {
-                    $version++;
-                }
-            }
+            // Sincroniza silenciosamente o cache local com a VPS (Fonte autoritativa)
 
             // Sincroniza silenciosamente o cache local
             @file_put_contents(PRODUCTS_FILE, json_encode([

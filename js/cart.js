@@ -414,12 +414,16 @@
     isOpen ? closeCart() : openCart();
   }
 
-  // ── Checkout via WhatsApp ──
+  // ── Checkout Oficial NT Eleganz (InfinitePay / Luxo) ──
   function checkout() {
     if (cartItems.length === 0) return;
     const total = formatCurrency(getTotal());
-    window.ntWpp?.checkout(cartItems, total);
     closeCart();
+    if (window.nteCheckout && typeof window.nteCheckout.open === 'function') {
+      window.nteCheckout.open(cartItems, total);
+    } else if (window.ntWpp?.checkout) {
+      window.ntWpp.checkout(cartItems, total);
+    }
   }
 
   // ── Toast notification ──

@@ -1,0 +1,663 @@
+/* ==========================================================================
+   NT ELEGANZ — LUXURY CHECKOUT CSS
+   Design System: Ivory / Deep Emerald Noir / Warm Gold / Cormorant Garamond
+   ========================================================================== */
+
+#nte-checkout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(11, 26, 21, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 280ms cubic-bezier(0.16, 1, 0.3, 1), visibility 280ms ease;
+  overflow-y: auto;
+}
+
+#nte-checkout-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nte-checkout-modal {
+  width: 100%;
+  max-width: 1040px;
+  background: #fbf9f6;
+  border-radius: 16px;
+  border: 1px solid rgba(197, 168, 128, 0.32);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  display: flex;
+  flex-direction: column;
+  max-height: 94vh;
+  transform: translateY(20px) scale(0.98);
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  color: #1a1a1a;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+#nte-checkout-overlay.active .nte-checkout-modal {
+  transform: translateY(0) scale(1);
+}
+
+/* ── Top Bar ── */
+.nte-checkout-header {
+  padding: 20px 28px;
+  background: #0b1a15;
+  color: #fbf9f6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(197, 168, 128, 0.25);
+  position: relative;
+}
+
+.nte-checkout-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.nte-checkout-brand h2 {
+  margin: 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #f8f6f0;
+}
+
+.nte-checkout-brand span {
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #c5a880;
+  margin-top: 2px;
+}
+
+.nte-checkout-security {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(248, 246, 240, 0.7);
+  letter-spacing: 0.05em;
+}
+
+.nte-checkout-security svg {
+  width: 14px;
+  height: 14px;
+  color: #c5a880;
+}
+
+.nte-checkout-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8f6f0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 180ms ease;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nte-checkout-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+/* ── Barra de Progresso de Luxo ── */
+.nte-progress-container {
+  background: #ffffff;
+  padding: 14px 28px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.nte-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8c857b;
+  font-weight: 500;
+}
+
+.nte-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 220ms ease;
+}
+
+.nte-progress-step.active {
+  color: #122f26;
+  font-weight: 700;
+}
+
+.nte-progress-step.completed {
+  color: #846237;
+}
+
+.nte-progress-step-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ede9e1;
+  color: #777;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.nte-progress-step.active .nte-progress-step-num {
+  background: #122f26;
+  color: #ffffff;
+}
+
+.nte-progress-step.completed .nte-progress-step-num {
+  background: #c5a880;
+  color: #ffffff;
+}
+
+.nte-progress-track {
+  height: 4px;
+  background: #ede9e1;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.nte-progress-fill {
+  height: 100%;
+  width: 15%;
+  background: linear-gradient(90deg, #c5a880, #1f7658);
+  border-radius: 4px;
+  transition: width 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Conteúdo / Duas Colunas ── */
+.nte-checkout-body {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Formulário (Coluna Esquerda) ── */
+.nte-checkout-form-col {
+  padding: 26px 32px 35px;
+  border-right: 1px solid rgba(0, 0, 0, 0.07);
+  overflow-y: auto;
+}
+
+.nte-section-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: border-color 200ms ease;
+}
+
+.nte-section-card:focus-within {
+  border-color: rgba(197, 168, 128, 0.6);
+}
+
+.nte-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #f2eee8;
+  padding-bottom: 10px;
+}
+
+.nte-section-icon {
+  width: 26px;
+  height: 26px;
+  background: #f4efe7;
+  color: #846237;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nte-section-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.nte-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #0b1a15;
+}
+
+/* Grid de Campos */
+.nte-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.nte-form-grid.col-full { grid-template-columns: 1fr; }
+.nte-form-grid.col-3 { grid-template-columns: 2fr 1fr 1fr; }
+
+.nte-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nte-input-group.span-2 {
+  grid-column: span 2;
+}
+
+.nte-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #555048;
+}
+
+.nte-label span.opt {
+  font-weight: 400;
+  text-transform: none;
+  color: #999;
+}
+
+.nte-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nte-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background: #faf8f5;
+  border: 1px solid #ded8ce;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111;
+  font-family: inherit;
+  transition: all 180ms ease;
+  outline: none;
+}
+
+.nte-input:focus {
+  background: #ffffff;
+  border-color: #122f26;
+  box-shadow: 0 0 0 3px rgba(18, 47, 38, 0.1);
+}
+
+.nte-input.is-valid {
+  border-color: #2e7d32;
+}
+
+.nte-cep-btn {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  bottom: 6px;
+  background: #122f26;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 180ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nte-cep-btn:hover {
+  background: #1b4539;
+}
+
+.nte-cep-loading {
+  font-size: 11px;
+  color: #846237;
+  margin-top: 4px;
+  display: none;
+}
+
+/* Formas de Envio (Radio Cards) */
+.nte-shipping-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nte-shipping-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1.5px solid #e5dfd5;
+  border-radius: 8px;
+  background: #faf8f5;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.nte-shipping-option:hover {
+  border-color: #c5a880;
+  background: #ffffff;
+}
+
+.nte-shipping-option.selected {
+  border-color: #122f26;
+  background: #f1f7f4;
+  box-shadow: 0 2px 8px rgba(18, 47, 38, 0.08);
+}
+
+.nte-shipping-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nte-radio-custom {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #b5ada0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms ease;
+}
+
+.nte-shipping-option.selected .nte-radio-custom {
+  border-color: #122f26;
+}
+
+.nte-radio-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #122f26;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 180ms ease;
+}
+
+.nte-shipping-option.selected .nte-radio-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.nte-shipping-info h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111;
+}
+
+.nte-shipping-info p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #777;
+}
+
+.nte-shipping-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #122f26;
+}
+
+.nte-shipping-free {
+  color: #2e7d32;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+/* ── Resumo do Pedido (Coluna Direita) ── */
+.nte-checkout-summary-col {
+  padding: 26px 28px 35px;
+  background: #f5f2ec;
+  display: flex;
+  flex-direction: column;
+}
+
+.nte-summary-header {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #0b1a15;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nte-summary-badge {
+  font-size: 10px;
+  background: #122f26;
+  color: #ffffff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.nte-cart-items-scroll {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 18px;
+  padding-right: 4px;
+}
+
+.nte-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nte-item-img {
+  width: 52px;
+  height: 65px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ded7cc;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.nte-item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.nte-item-brand {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #846237;
+}
+
+.nte-item-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 1px 0;
+}
+
+.nte-item-meta {
+  font-size: 11px;
+  color: #777;
+}
+
+.nte-item-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1a15;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Totais Financeiros */
+.nte-totals-box {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.nte-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.nte-total-row.final {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0ece5;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0b1a15;
+}
+
+.nte-total-row.final span.val {
+  color: #122f26;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Botões de Ação Final */
+.nte-btn-infinite {
+  width: 100%;
+  height: 52px;
+  background: linear-gradient(135deg, #0b1a15 0%, #163d30 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(11, 26, 21, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 220ms ease;
+}
+
+.nte-btn-infinite:hover {
+  background: linear-gradient(135deg, #122f26 0%, #1f5744 100%);
+  box-shadow: 0 10px 28px rgba(11, 26, 21, 0.38);
+  transform: translateY(-2px);
+}
+
+.nte-btn-infinite:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.nte-btn-wpp-alt {
+  width: 100%;
+  height: 42px;
+  background: transparent;
+  color: #122f26;
+  border: 1px solid rgba(18, 47, 38, 0.3);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 180ms ease;
+}
+
+.nte-btn-wpp-alt:hover {
+  background: rgba(18, 47, 38, 0.05);
+  border-color: #122f26;
+}
+
+.nte-trust-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #7a7368;
+  margin-top: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Responsividade Mobile */
+@media (max-width: 860px) {
+  .nte-checkout-body {
+    grid-template-columns: 1fr;
+  }
+  .nte-checkout-form-col {
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 20px 18px;
+  }
+  .nte-checkout-summary-col {
+    padding: 20px 18px 30px;
+  }
+  .nte-progress-container {
+    padding: 10px 18px;
+  }
+  .nte-progress-labels {
+    font-size: 9px;
+  }
+  .nte-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .nte-input-group.span-2 {
+    grid-column: span 1;
+  }
+}

@@ -2579,6 +2579,11 @@
 
     // Username
     setValue('new-username', window.ntAuth?.getUsername() || 'admin');
+
+    // Carrega formas de entrega configuradas
+    if (typeof window.loadAdminShippingMethods === 'function') {
+      window.loadAdminShippingMethods();
+    }
   }
 
   window.selectDBMode = function (mode, el, updateDOM = true) {
@@ -2692,6 +2697,145 @@
     localStorage.setItem('nte_wpp_settings', JSON.stringify(settings));
     alertEl.innerHTML = '<div class="alert alert-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>WhatsApp atualizado!</div>';
     showToast('whatsapp', 'WhatsApp salvo!', settings.number);
+  };
+
+  // ── Gestão de Formas de Envio (Checkout de Luxo) ──
+  let adminShippingMethods = [];
+
+  window.loadAdminShippingMethods = async function () {
+    const container = document.getElementById('shipping-methods-container');
+    if (!container) return;
+    try {
+      const res = await fetch('/api/shipping_methods.php?all=1', { cache: 'no-store' });
+      const data = await res.json();
+      if (data && Array.isArray(data.methods)) {
+        adminShippingMethods = data.methods;
+      } else {
+        adminShippingMethods = [];
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar métodos de frete:', e);
+      adminShippingMethods = [
+        { id: 'sedex', name: 'Sedex Express (Seguro Especial Incluso)', price: 38.0, deadline: '2 a 4 dias úteis', freeAbove: 1000, active: true },
+        { id: 'pac', name: 'Standard Nobre (PAC)', price: 22.0, deadline: '5 a 8 dias úteis', freeAbove: 600, active: true },
+        { id: 'concierge', name: 'Entrega Concierge / Agendamento VIP', price: 60.0, deadline: 'Até 24h ou agendado', freeAbove: null, active: true }
+      ];
+    }
+    renderAdminShippingMethods();
+  };
+
+  window.renderAdminShippingMethods = function () {
+    const container = document.getElementById('shipping-methods-container');
+    if (!container) return;
+    if (adminShippingMethods.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-muted);font-size:13px;">Nenhuma forma de entrega cadastrada. Clique em "+ Nova Forma de Envio".</div>';
+      return;
+    }
+
+    container.innerHTML = adminShippingMethods.map((m, idx) => `
+      <div style="background:var(--bg-secondary, #f4f2ee);border:1px solid var(--border-color, #e5e0d8);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-weight:600;font-size:14px;color:var(--text-primary, #111);">
+            #${idx + 1} — ${m.name || 'Nova Opção'}
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" ${m.active !== false ? 'checked' : ''} onchange="toggleShippingActive(${idx}, this.checked)" />
+              Ativo
+            </label>
+            <button type="button" class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:11px;" onclick="removeShippingMethod(${idx})">Remover</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px;">
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px;">Nome do Método</label>
+            <input type="text" class="form-control" value="${m.name || ''}" placeholder="Ex: Sedex Express" oninput="updateShippingField(${idx}, 'name', this.value)" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px;">Valor (R$)</label>
+            <input type="number" step="0.5" class="form-control" value="${m.price !== undefined ? m.price : 0}" placeholder="38.00" oninput="updateShippingField(${idx}, 'price', parseFloat(this.value) || 0)" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px;">Prazo Estimado</label>
+            <input type="text" class="form-control" value="${m.deadline || ''}" placeholder="2 a 4 dias úteis" oninput="updateShippingField(${idx}, 'deadline', this.value)" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px;">Grátis Acima de (R$) <span style="font-size:10px;">(opcional)</span></label>
+            <input type="number" step="10" class="form-control" value="${m.freeAbove || ''}" placeholder="Deixe vazio se não houver" oninput="updateShippingField(${idx}, 'freeAbove', this.value ? parseFloat(this.value) : null)" />
+          </div>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  window.addNewShippingMethod = function () {
+    adminShippingMethods.push({
+      id: 'ship_' + Date.now().toString(36),
+      name: 'Nova Entrega Personalizada',
+      price: 25.0,
+      deadline: '3 a 5 dias úteis',
+      freeAbove: null,
+      active: true
+    });
+    renderAdminShippingMethods();
+  };
+
+  window.removeShippingMethod = function (idx) {
+    if (confirm('Deseja realmente remover esta opção de frete?')) {
+      adminShippingMethods.splice(idx, 1);
+      renderAdminShippingMethods();
+    }
+  };
+
+  window.toggleShippingActive = function (idx, active) {
+    if (adminShippingMethods[idx]) {
+      adminShippingMethods[idx].active = active;
+    }
+  };
+
+  window.updateShippingField = function (idx, field, val) {
+    if (adminShippingMethods[idx]) {
+      adminShippingMethods[idx][field] = val;
+    }
+  };
+
+  window.saveAllShippingMethods = async function () {
+    const alertEl = document.getElementById('shipping-alert');
+    const saveBtn = document.getElementById('btn-save-shipping');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+    }
+    try {
+      const token = window.ntAuth?.getToken?.() || '';
+      const res = await fetch('/api/shipping_methods.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({ methods: adminShippingMethods })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao salvar configurações de frete');
+      }
+      if (alertEl) {
+        alertEl.innerHTML = '<div class="alert alert-success" style="margin-top:8px;">Formas de entrega atualizadas com sucesso!</div>';
+        setTimeout(() => { if (alertEl) alertEl.innerHTML = ''; }, 4000);
+      }
+      showToast('check', 'Frete atualizado!', `${adminShippingMethods.length} formas de envio salvas`);
+    } catch (err) {
+      if (alertEl) {
+        alertEl.innerHTML = `<div class="alert alert-danger" style="margin-top:8px;">${err.message}</div>`;
+      }
+      showToast('!', 'Erro ao salvar frete', err.message);
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar Formas de Envio';
+      }
+    }
   };
 
   // ── Export / Import ──
