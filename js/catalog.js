@@ -29,14 +29,15 @@
   let page = 1;
   const PER_PAGE = 12;
   const CATEGORY_LABELS = { todos:'Collections', camisetas:'Camisetas', shorts:'Shorts', calcados:'Calçados', hoodies:'Hoodies' };
+  const getCategoryLabel = cat => CATEGORY_LABELS[cat] || (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'Collections');
   let currentGridCols = 4;
   const rules = window.NTCatalogFilters;
   const selected = { brands: [], sizes: [], stock: false, sale: false };
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   priceMax = Infinity;
-  const pathCategory = location.pathname.match(/\/collections\/(camisetas|shorts|calcados|hoodies)(?:\/|$)/)?.[1];
-  const categoryParam = pathCategory || new URLSearchParams(location.search).get('categoria');
-  if (['camisetas', 'shorts', 'calcados', 'hoodies'].includes(categoryParam)) activeCategory = categoryParam;
+  const pathCategory = location.pathname.match(/\/collections\/([^/]+)(?:\/|$)/)?.[1];
+  const categoryParam = (pathCategory && pathCategory !== 'index.html' ? pathCategory : null) || new URLSearchParams(location.search).get('categoria');
+  if (categoryParam && categoryParam !== 'todos') activeCategory = categoryParam;
 
   function filterState() { return { ...selected, category: activeCategory, sort: activeSort, min: priceMin, max: priceMax, query: searchQuery }; }
   function resetFilters() {
@@ -57,10 +58,10 @@
       button.setAttribute('aria-pressed', String(button.dataset.cat === activeCategory));
     });
     const heading = document.querySelector('.catalog-hero__title');
-    if (heading) heading.textContent = CATEGORY_LABELS[activeCategory] || 'Collections';
+    if (heading) heading.textContent = getCategoryLabel(activeCategory);
     const hero = document.getElementById('catalog-hero');
     if (hero) hero.hidden = activeCategory !== 'todos';
-    document.title = `${CATEGORY_LABELS[activeCategory] || 'Collections'} — NT Eleganz`;
+    document.title = `${getCategoryLabel(activeCategory)} — NT Eleganz`;
     document.querySelectorAll('.menu-orb-nav .orb-link').forEach(link => {
       const target = new URL(link.href, location.origin).pathname.replace(/\/$/, '');
       link.classList.toggle('active', target === location.pathname.replace(/\/$/, ''));

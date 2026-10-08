@@ -144,17 +144,23 @@
   }
 
   function productCategory(product) {
-    const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    const explicit = normalize(product.category);
-    if (['camisetas', 'shorts', 'calcados', 'hoodies'].includes(explicit)) return explicit;
-    const text = normalize(`${product.name || ''} ${product.category || ''}`);
+    const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const explicit = normalize(product?.category);
+    if (explicit && explicit !== 'todos') return explicit;
+    const text = normalize(`${product?.name || ''} ${product?.category || ''}`);
     if (/calcado|sandalia|tenis|sapato|sneaker|birkenstock/.test(text)) return 'calcados';
     if (/short|bermuda|swim|trunk/.test(text)) return 'shorts';
     if (/hood|moletom|puffer|jaqueta|jacket|biker|leather/.test(text)) return 'hoodies';
     return 'camisetas';
   }
 
-  const categoryLabel = value => ({ camisetas: 'Camisetas', shorts: 'Shorts', calcados: 'Calçados', hoodies: 'Hoodies' })[value] || value;
+  const categoryLabel = value => {
+    if (typeof allCategories !== 'undefined' && Array.isArray(allCategories) && allCategories.length) {
+      const match = allCategories.find(c => c.id === value);
+      if (match && match.name) return match.name;
+    }
+    return ({ camisetas: 'Camisetas', shorts: 'Shorts', calcados: 'Calçados', hoodies: 'Hoodies' })[value] || value;
+  };
 
   // ── Panel Navigation ──
   const PANEL_TITLES = {
@@ -193,6 +199,7 @@
       if (panelId === 'overview') await loadOverview();
       if (panelId === 'financeiro') await loadFinanceiro();
       if (panelId === 'produtos') syncProducts();
+      if (panelId === 'categorias') loadCategories();
       if (panelId === 'faq') loadFaq();
 
       if (panelId === 'pedidos') refreshOrders();
@@ -327,6 +334,7 @@
             overflow-y: auto !important;
           }
           #product-modal { z-index: 200 !important; }
+          #category-modal { z-index: 202 !important; }
           #order-modal { z-index: 205 !important; }
           #customer-modal { z-index: 210 !important; }
           #whatsapp-modal { z-index: 300 !important; }
@@ -357,6 +365,7 @@
       allProducts = await window.ntDB?.products.reload() || [];
       allOrders = await window.ntDB?.orders.getAll() || [];
       await refreshLeads(false);
+      loadCategories().catch(e => console.warn('Falha ao inicializar categorias:', e));
 
       // Load overview
       loadOverview();
@@ -1015,6 +1024,7 @@
   // ── Product Modal ──
   window.openProductModal = function (productId = null) {
     setupProductNameInput();
+    syncCategoryDropdowns();
     editingSizes = [];
     editingColors = [];
     pendingImages = [];
@@ -1027,7 +1037,7 @@
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
-    document.getElementById('p-category').value = 'camisetas';
+    document.getElementById('p-category').value = allCategories[0]?.id || 'camisetas';
     document.getElementById('p-stock').value = '';
     document.getElementById('p-active').value = 'true';
     renderImagePreviews();
@@ -3074,6 +3084,281 @@
         testBtn.disabled = false;
         testBtn.textContent = 'Testar Disparo na API da Meta (CAPI)';
       }
+    }
+  };
+
+  // ── CATEGORIAS DA LOJA (Gestão de Coleções) ──
+  let allCategories = [];
+
+  window.loadCategories = async function (forceRefresh = false) {
+    const grid = document.getElementById('categories-grid');
+    const countEl = document.getElementById('categories-result-count');
+    const alertEl = document.getElementById('category-alert');
+    if (alertEl) alertEl.innerHTML = '';
+
+    if (grid && (!allCategories.length || forceRefresh)) {
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);"><div class="spinner" style="margin: 0 auto 12px;"></div>Carregando categorias...</div>';
+    }
+
+    try {
+      const res = await fetch('/api/categories.php?all=1', { cache: 'no-store' });
+      const data = await res.json();
+      if (data && Array.isArray(data.categories)) {
+        allCategories = data.categories;
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar categorias da API:', e);
+      if (!allCategories.length) {
+        allCategories = [
+          { id: 'camisetas', name: 'Camisetas', image: 'assets/images/category-camisetas.webp', active: true },
+          { id: 'shorts', name: 'Shorts', image: 'assets/images/category-shorts.webp', active: true },
+          { id: 'calcados', name: 'Calçados', image: 'assets/images/category-calcados.webp', active: true },
+          { id: 'hoodies', name: 'Hoodies', image: 'assets/images/category-hoodies.webp', active: true }
+        ];
+      }
+    }
+
+    renderCategoriesGrid();
+    syncCategoryDropdowns();
+  };
+
+  function renderCategoriesGrid() {
+    const grid = document.getElementById('categories-grid');
+    const countEl = document.getElementById('categories-result-count');
+    if (!grid) return;
+
+    if (countEl) {
+      countEl.textContent = `${allCategories.length} ${allCategories.length === 1 ? 'categoria cadastrada' : 'categorias cadastradas'}`;
+    }
+
+    if (!allCategories.length) {
+      grid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px dashed var(--border);">
+          <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">Nenhuma categoria encontrada</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Crie categorias para organizar seus produtos na vitrine.</p>
+          <button type="button" class="btn btn-primary" onclick="openCategoryModal()">+ Adicionar Categoria</button>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = allCategories.map(cat => {
+      const imgSrc = cat.image || 'assets/images/category-camisetas.webp';
+      const safeName = (cat.name || '').replace(/"/g, '&quot;');
+      const safeId = (cat.id || '').replace(/"/g, '&quot;');
+
+      return `
+        <div class="category-admin-card" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; box-shadow: var(--shadow-sm);">
+          <div style="position: relative; width: 100%; aspect-ratio: 3/4; background: #0a0a0a; overflow: hidden;">
+            <img src="${imgSrc}" alt="${safeName}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='assets/images/category-camisetas.webp'" />
+            <div style="position: absolute; top: 12px; right: 12px;">
+              <span class="badge ${cat.active !== false ? 'badge-success' : 'badge-inactive'}" style="font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 4px; background: rgba(0,0,0,0.65); color: #fff; backdrop-filter: blur(4px);">
+                ${cat.active !== false ? 'Ativa' : 'Inativa'}
+              </span>
+            </div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 70%, transparent 100%); padding: 24px 16px 12px;">
+              <h3 style="color: #ffffff; margin: 0 0 2px 0; font-size: 18px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">${safeName}</h3>
+              <span style="color: rgba(255,255,255,0.7); font-size: 11px; font-family: monospace;">slug: ${safeId}</span>
+            </div>
+          </div>
+          <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border-top: 1px solid var(--border); gap: 8px;">
+            <a href="/collections/?categoria=${encodeURIComponent(cat.id)}" target="_blank" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 4px;" title="Ver na loja">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>
+              Ver Loja
+            </a>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openCategoryModal('${safeId}')" style="font-size: 11px; padding: 6px 10px;" title="Editar Categoria">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="deleteCategory('${safeId}', '${safeName}')" style="font-size: 11px; padding: 6px 10px; color: var(--danger);" title="Excluir Categoria">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function syncCategoryDropdowns() {
+    const productCategorySelect = document.getElementById('p-category');
+    const filterCategorySelect = document.getElementById('product-filter-cat');
+    if (!allCategories.length) return;
+
+    if (productCategorySelect) {
+      const currentVal = productCategorySelect.value;
+      productCategorySelect.innerHTML = allCategories.map(cat => `
+        <option value="${cat.id}">${cat.name}</option>
+      `).join('');
+      if (currentVal && allCategories.some(c => c.id === currentVal)) {
+        productCategorySelect.value = currentVal;
+      }
+    }
+
+    if (filterCategorySelect) {
+      const currentFilter = filterCategorySelect.value;
+      filterCategorySelect.innerHTML = '<option value="">Todas categorias</option>' + allCategories.map(cat => `
+        <option value="${cat.id}">${cat.name}</option>
+      `).join('');
+      if (currentFilter) {
+        filterCategorySelect.value = currentFilter;
+      }
+    }
+  }
+
+  window.openCategoryModal = function (categoryId = null) {
+    const modal = document.getElementById('category-modal');
+    const titleEl = document.getElementById('category-modal-title');
+    const idInput = document.getElementById('cat-edit-id');
+    const nameInput = document.getElementById('cat-name');
+    const imgValInput = document.getElementById('cat-image-val');
+    const previewBox = document.getElementById('cat-preview-box');
+    const previewImg = document.getElementById('cat-preview-img');
+    const previewLabel = document.getElementById('cat-preview-label');
+    const fileInput = document.getElementById('cat-image-file');
+
+    if (!modal) return;
+    if (fileInput) fileInput.value = '';
+
+    if (categoryId && typeof categoryId === 'string') {
+      const cat = allCategories.find(c => c.id === categoryId);
+      if (cat) {
+        if (titleEl) titleEl.textContent = 'Editar Categoria';
+        if (idInput) idInput.value = cat.id;
+        if (nameInput) nameInput.value = cat.name || '';
+        if (imgValInput) imgValInput.value = cat.image || '';
+        if (previewImg) previewImg.src = cat.image || '';
+        if (previewLabel) previewLabel.textContent = 'Imagem Atual';
+        if (previewBox) previewBox.style.display = cat.image ? 'block' : 'none';
+      }
+    } else {
+      if (titleEl) titleEl.textContent = 'Nova Categoria';
+      if (idInput) idInput.value = '';
+      if (nameInput) nameInput.value = '';
+      if (imgValInput) imgValInput.value = '';
+      if (previewBox) previewBox.style.display = 'none';
+    }
+
+    modal.classList.add('active');
+    setTimeout(() => nameInput?.focus(), 100);
+  };
+
+  window.closeCategoryModal = function () {
+    const modal = document.getElementById('category-modal');
+    if (modal) modal.classList.remove('active');
+  };
+
+  window.handleCategoryImageSelect = function (event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um arquivo de imagem válido (PNG, JPG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const dataUrl = e.target.result;
+      const imgValInput = document.getElementById('cat-image-val');
+      const previewBox = document.getElementById('cat-preview-box');
+      const previewImg = document.getElementById('cat-preview-img');
+      const previewLabel = document.getElementById('cat-preview-label');
+
+      if (imgValInput) imgValInput.value = dataUrl;
+      if (previewImg) previewImg.src = dataUrl;
+      if (previewLabel) previewLabel.textContent = 'Nova imagem selecionada';
+      if (previewBox) previewBox.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.removeCategorySelectedImage = function () {
+    const fileInput = document.getElementById('cat-image-file');
+    const imgValInput = document.getElementById('cat-image-val');
+    const previewBox = document.getElementById('cat-preview-box');
+    if (fileInput) fileInput.value = '';
+    if (imgValInput) imgValInput.value = '';
+    if (previewBox) previewBox.style.display = 'none';
+  };
+
+  window.saveCategory = async function () {
+    const idInput = document.getElementById('cat-edit-id');
+    const nameInput = document.getElementById('cat-name');
+    const imgValInput = document.getElementById('cat-image-val');
+    const saveBtn = document.getElementById('btn-save-category');
+
+    const name = nameInput?.value.trim() || '';
+    if (!name) {
+      alert('Por favor, informe o nome da categoria.');
+      nameInput?.focus();
+      return;
+    }
+
+    const image = imgValInput?.value.trim() || '';
+    if (!image) {
+      alert('Por favor, selecione uma imagem para a categoria.');
+      return;
+    }
+
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Salvando...';
+    }
+
+    const payload = {
+      id: idInput?.value.trim() || '',
+      name: name,
+      image: image,
+      active: true
+    };
+
+    try {
+      const res = await fetch('/api/categories.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao salvar categoria');
+      }
+
+      showToast('check', 'Categoria Salva!', `A categoria "${name}" foi salva com sucesso.`);
+      closeCategoryModal();
+      await loadCategories(true);
+    } catch (err) {
+      alert('Falha ao salvar categoria: ' + err.message);
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salvar Categoria';
+      }
+    }
+  };
+
+  window.deleteCategory = async function (id, name) {
+    if (!confirm(`Deseja realmente excluir a categoria "${name}"? Os produtos vinculados a ela não serão excluídos.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/categories.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id: id })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Erro ao excluir categoria');
+      }
+
+      showToast('trash', 'Categoria Excluída', `A categoria "${name}" foi removida.`);
+      await loadCategories(true);
+    } catch (err) {
+      alert('Erro ao excluir: ' + err.message);
     }
   };
 

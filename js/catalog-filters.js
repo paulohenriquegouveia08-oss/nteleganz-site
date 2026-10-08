@@ -11,7 +11,7 @@
   const onSale = p => price(p.oldPrice) > price(p.price);
   const category = p => {
     const explicit = normalize(p.category);
-    if (['camisetas', 'shorts', 'calcados', 'hoodies'].includes(explicit)) return explicit;
+    if (explicit && explicit !== 'todos') return explicit;
     const text = normalize(`${p.name} ${p.category}`);
     if (/calcado|sandalia|tenis|sapato|sneaker|birkenstock/.test(text)) return 'calcados';
     if (/short|bermuda|swim|trunk/.test(text)) return 'shorts';

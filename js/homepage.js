@@ -27,7 +27,45 @@
     (data.order||defaults.order).forEach(key=>{const element=document.querySelector(selectors[key]);if(element&&parent){parent.insertBefore(element,cursor?cursor.nextSibling:parent.firstChild);cursor=element;}});
     Object.entries(selectors).forEach(([key,selector])=>{const element=document.querySelector(selector);if(element&&data.sections[key]===false) element.hidden=true;});
   }
-  async function load(){try{await window.ntDB?.init();apply(await window.ntDB?.settings.getById('homepage-content'));}catch(error){console.warn('Homepage settings unavailable:',error);apply(defaults);}}
+  async function loadCategories() {
+    const grid = document.querySelector('.catalog-category-section .how-grid');
+    if (!grid) return;
+    try {
+      const res = await fetch('/api/categories.php', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !Array.isArray(data.categories) || !data.categories.length) return;
+      const activeCats = data.categories.filter(c => c.active !== false);
+      if (!activeCats.length) return;
+
+      const defaultFolders = ['camisetas', 'shorts', 'calcados', 'hoodies'];
+      grid.innerHTML = activeCats.map(cat => {
+        const href = defaultFolders.includes(cat.id) ? `/collections/${cat.id}/` : `/collections/?categoria=${encodeURIComponent(cat.id)}`;
+        const imgSrc = cat.image || 'assets/images/category-camisetas.webp';
+        const name = cat.name || '';
+        return `
+          <a class="how-item" href="${href}" data-reveal>
+            <span class="how-cover">
+              <img src="${imgSrc}" alt="${name}" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/images/category-camisetas.webp'">
+            </span>
+            <h3 class="how-title">${name}</h3>
+          </a>
+        `;
+      }).join('');
+    } catch (e) {
+      console.warn('Categorias dinâmicas indisponíveis:', e);
+    }
+  }
+  async function load(){
+    try{
+      await window.ntDB?.init();
+      apply(await window.ntDB?.settings.getById('homepage-content'));
+    }catch(error){
+      console.warn('Homepage settings unavailable:',error);
+      apply(defaults);
+    }
+    loadCategories();
+  }
   document.addEventListener('DOMContentLoaded',load);
   window.addEventListener('storage',event=>{if(event.key==='nte_settings')load();});
 })();
