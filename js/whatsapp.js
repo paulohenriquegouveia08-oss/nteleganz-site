@@ -25,6 +25,29 @@ function generateWhatsAppUrl(message) {
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
+/**
+ * Resumo de onde a pessoa veio (UTMs / clique de anúncio), lido do tracking.js.
+ * Serve para o lojista ver a origem de cada lead/pedido no painel.
+ */
+function getCampaignOrigin() {
+  try {
+    const t = (window.nteTracking && typeof window.nteTracking.getTrackingData === 'function')
+      ? window.nteTracking.getTrackingData() : {};
+    const parts = [];
+    if (t.utm_source) parts.push(`origem: ${t.utm_source}`);
+    if (t.utm_medium) parts.push(`mídia: ${t.utm_medium}`);
+    if (t.utm_campaign) parts.push(`campanha: ${t.utm_campaign}`);
+    if (t.utm_content) parts.push(`criativo: ${t.utm_content}`);
+    if (t.utm_term) parts.push(`termo: ${t.utm_term}`);
+    if (!parts.length) {
+      if (t.fbclid) parts.push('origem: facebook/meta (clique de anúncio)');
+      else if (t.gclid) parts.push('origem: google ads (clique de anúncio)');
+      else if (t.referrer) parts.push(`origem: ${t.referrer}`);
+    }
+    return parts.join(' · ');
+  } catch (e) { return ''; }
+}
+
 function registerLead(data) {
   const lead = {
     source: 'whatsapp',
@@ -33,6 +56,9 @@ function registerLead(data) {
     page: `${location.pathname}${location.search}`,
     ...data,
   };
+  // Anexa a origem da campanha ao lead (coluna messagePreview já existe).
+  const origin = getCampaignOrigin();
+  if (origin) lead.messagePreview = `${lead.messagePreview ? lead.messagePreview + '\n\n' : ''}📍 ${origin}`;
   // The popup is opened synchronously by the caller; tracking must never stop contact.
   Promise.resolve(window.ntDB?.init())
     .then(() => window.ntDB?.leads?.add(lead))
@@ -49,6 +75,9 @@ function registerOrder(data) {
     color: '',
     ...data,
   };
+  // Anexa a origem da campanha ao pedido (coluna notes já existe).
+  const origin = getCampaignOrigin();
+  if (origin) order.notes = `${order.notes ? order.notes + '\n' : ''}📍 ${origin}`;
 
   // Cache instantâneo local para que se o cliente ou lojista clicar no link imediatamente
   // a página de detalhes já encontre os dados em 0ms
@@ -751,6 +780,15 @@ function orderProductViaWhatsApp(product, size = null, color = null, qty = null)
       // Open WhatsApp directly on customer submit click (synchronous to click)
       window.open(generateWhatsAppUrl(message), '_blank');
 
+      // Conversão "foi pro WhatsApp" para Meta/Google (otimização do tráfego).
+      if (window.nteTracking && typeof window.nteTracking.trackWhatsAppContact === 'function') {
+        window.nteTracking.trackWhatsAppContact({
+          items: [{ id: product?.id || '', name: product?.name || '', price: product?.price || '', qty: quantity }],
+          value: product?.price || 0,
+          productName: product?.name || ''
+        });
+      }
+
       registerLead({
         type: 'produto',
         client: customer.name,
@@ -859,6 +897,15 @@ function checkoutViaWhatsApp(cartItems, total) {
 
       // Open WhatsApp directly on customer submit click (synchronous to click)
       window.open(generateWhatsAppUrl(message), '_blank');
+
+      // Conversão "foi pro WhatsApp" para Meta/Google (otimização do tráfego).
+      if (window.nteTracking && typeof window.nteTracking.trackWhatsAppContact === 'function') {
+        window.nteTracking.trackWhatsAppContact({
+          items: formattedItems,
+          value: total,
+          productName: 'Pedido do carrinho'
+        });
+      }
 
       registerLead({
         type: 'carrinho',

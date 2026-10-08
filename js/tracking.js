@@ -339,6 +339,35 @@
           }))
         }
       });
+    },
+
+    // Contato via WhatsApp — a conversão principal deste negócio ("a pessoa
+    // selecionou o produto e foi para o WhatsApp"). Dispara Meta Lead +
+    // Contact e GA4 generate_lead. É este evento que o tráfego pago otimiza.
+    trackWhatsAppContact(data) {
+      const payload = data || {};
+      const value = typeof payload.value === 'number'
+        ? payload.value
+        : parseFloat(String(payload.value || 0).replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
+      const items = Array.isArray(payload.items) ? payload.items : [];
+      const contentIds = items.map(i => String(i.id || i.slug || 'prod'));
+      const numItems = items.reduce((a, b) => a + (Number(b.qty) || 1), 0) || 1;
+
+      trackEvent('Lead', 'generate_lead', {
+        metaPayload: {
+          content_name: payload.productName || 'Pedido WhatsApp',
+          content_ids: contentIds,
+          content_type: 'product',
+          value: value,
+          currency: 'BRL',
+          num_items: numItems
+        },
+        gaPayload: { currency: 'BRL', value: value }
+      });
+
+      // Evento 'Contact' padrão da Meta — recomendado para campanhas de
+      // mensagens/WhatsApp. Só dispara se o pixel estiver carregado.
+      if (window.fbq) window.fbq('track', 'Contact');
     }
   };
 
