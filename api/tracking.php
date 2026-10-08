@@ -24,6 +24,9 @@ const TRACKING_SETTINGS_FILE = __DIR__ . '/../data/tracking_settings.json';
 function defaultTrackingSettings(): array {
     return [
         'meta_pixel_id' => '',
+        'meta_pageview_pixel_id' => '',
+        'meta_pageview_enabled' => true,
+        'meta_pageview_on_main' => true,
         'meta_capi_token' => '',
         'meta_test_event_code' => '',
         'gtm_id' => '',
@@ -229,6 +232,9 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking.php') {
                 'success' => true,
                 'settings' => [
                     'meta_pixel_id' => $settings['meta_pixel_id'] ?? '',
+                    'meta_pageview_pixel_id' => $settings['meta_pageview_pixel_id'] ?? '',
+                    'meta_pageview_enabled' => isset($settings['meta_pageview_enabled']) ? (bool)$settings['meta_pageview_enabled'] : true,
+                    'meta_pageview_on_main' => isset($settings['meta_pageview_on_main']) ? (bool)$settings['meta_pageview_on_main'] : true,
                     'gtm_id' => $settings['gtm_id'] ?? '',
                     'ga4_id' => $settings['ga4_id'] ?? '',
                     'google_ads_conversion_id' => $settings['google_ads_conversion_id'] ?? '',
@@ -287,6 +293,9 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking.php') {
 
         $sanitized = [
             'meta_pixel_id' => trim((string)($input['meta_pixel_id'] ?? $current['meta_pixel_id'])),
+            'meta_pageview_pixel_id' => trim((string)($input['meta_pageview_pixel_id'] ?? ($current['meta_pageview_pixel_id'] ?? ''))),
+            'meta_pageview_enabled' => isset($input['meta_pageview_enabled']) ? (bool)$input['meta_pageview_enabled'] : (bool)($current['meta_pageview_enabled'] ?? true),
+            'meta_pageview_on_main' => isset($input['meta_pageview_on_main']) ? (bool)$input['meta_pageview_on_main'] : (bool)($current['meta_pageview_on_main'] ?? true),
             'meta_capi_token' => trim((string)($input['meta_capi_token'] ?? $current['meta_capi_token'])),
             'meta_test_event_code' => trim((string)($input['meta_test_event_code'] ?? $current['meta_test_event_code'])),
             'gtm_id' => trim((string)($input['gtm_id'] ?? $current['gtm_id'])),

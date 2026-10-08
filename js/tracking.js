@@ -81,8 +81,8 @@
   }
 
   // ── 2. Injeção dos Scripts de Pixel e Tags Oficiais ──
-  function injectMetaPixel(pixelId) {
-    if (!pixelId || window.fbq) return;
+  function ensureMetaScript() {
+    if (window.fbq) return;
     (function (f, b, e, v, n, t, s) {
       if (f.fbq) return;
       n = f.fbq = function () {
@@ -99,9 +99,43 @@
       s = b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t, s);
     })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+  }
 
-    window.fbq('init', pixelId);
-    window.fbq('track', 'PageView');
+  function setupMetaPixels(cfg) {
+    const basePixelId = (cfg.meta_pixel_id || '').trim();
+    const pageviewPixelId = (cfg.meta_pageview_pixel_id || '').trim();
+    const pageviewEnabled = cfg.meta_pageview_enabled !== false;
+    const pageviewOnMain = cfg.meta_pageview_on_main !== false;
+
+    if (!basePixelId && !pageviewPixelId) return;
+
+    ensureMetaScript();
+
+    // Inicializa o Pixel Principal se configurado
+    if (basePixelId) {
+      window.fbq('init', basePixelId);
+    }
+
+    // Inicializa o Pixel de PageView dedicado (se diferente do principal)
+    if (pageviewPixelId && pageviewPixelId !== basePixelId) {
+      window.fbq('init', pageviewPixelId);
+    }
+
+    // Dispara o evento PageView
+    if (pageviewEnabled) {
+      if (pageviewPixelId) {
+        window.fbq('trackSingle', pageviewPixelId, 'PageView');
+        if (basePixelId && pageviewPixelId !== basePixelId && pageviewOnMain) {
+          window.fbq('trackSingle', basePixelId, 'PageView');
+        }
+      } else if (basePixelId) {
+        window.fbq('trackSingle', basePixelId, 'PageView');
+      }
+    }
+  }
+
+  function injectMetaPixel(pixelId) {
+    setupMetaPixels({ meta_pixel_id: pixelId, meta_pageview_enabled: true });
   }
 
   function injectGoogleTagManager(gtmId) {
@@ -177,10 +211,19 @@
   function dispatchTrackEvent(metaName, ga4Name, data) {
     // Meta Ads Pixel
     if (window.fbq && metaName) {
-      if (data && data.eventId) {
-        window.fbq('track', metaName, data.metaPayload || {}, { eventID: data.eventId });
+      const targetPixelId = trackingConfig && (trackingConfig.meta_pixel_id || trackingConfig.meta_pageview_pixel_id);
+      if (targetPixelId) {
+        if (data && data.eventId) {
+          window.fbq('trackSingle', targetPixelId, metaName, data.metaPayload || {}, { eventID: data.eventId });
+        } else {
+          window.fbq('trackSingle', targetPixelId, metaName, data ? (data.metaPayload || data) : {});
+        }
       } else {
-        window.fbq('track', metaName, data ? (data.metaPayload || data) : {});
+        if (data && data.eventId) {
+          window.fbq('track', metaName, data.metaPayload || {}, { eventID: data.eventId });
+        } else {
+          window.fbq('track', metaName, data ? (data.metaPayload || data) : {});
+        }
       }
     }
 
@@ -367,7 +410,34 @@
 
       // Evento 'Contact' padrão da Meta — recomendado para campanhas de
       // mensagens/WhatsApp. Só dispara se o pixel estiver carregado.
-      if (window.fbq) window.fbq('track', 'Contact');
+      if (window.fbq) {
+        const targetPixelId = trackingConfig && (trackingConfig.meta_pixel_id || trackingConfig.meta_pageview_pixel_id);
+        if (targetPixelId) {
+          window.fbq('trackSingle', targetPixelId, 'Contact');
+        } else {
+          window.fbq('track', 'Contact');
+        }
+      }
+    },
+
+    // Disparo manual ou de rota de PageView
+    trackPageView() {
+      if (!window.fbq) return;
+      const basePixelId = (trackingConfig && trackingConfig.meta_pixel_id || '').trim();
+      const pageviewPixelId = (trackingConfig && trackingConfig.meta_pageview_pixel_id || '').trim();
+      const pageviewEnabled = trackingConfig ? trackingConfig.meta_pageview_enabled !== false : true;
+      const pageviewOnMain = trackingConfig ? trackingConfig.meta_pageview_on_main !== false : true;
+
+      if (!pageviewEnabled) return;
+
+      if (pageviewPixelId) {
+        window.fbq('trackSingle', pageviewPixelId, 'PageView');
+        if (basePixelId && pageviewPixelId !== basePixelId && pageviewOnMain) {
+          window.fbq('trackSingle', basePixelId, 'PageView');
+        }
+      } else if (basePixelId) {
+        window.fbq('trackSingle', basePixelId, 'PageView');
+      }
     }
   };
 
@@ -384,8 +454,8 @@
       if (data && data.success && data.settings && data.settings.active) {
         trackingConfig = data.settings;
 
-        if (trackingConfig.meta_pixel_id) {
-          injectMetaPixel(trackingConfig.meta_pixel_id);
+        if (trackingConfig.meta_pixel_id || trackingConfig.meta_pageview_pixel_id) {
+          setupMetaPixels(trackingConfig);
         }
 
         if (trackingConfig.gtm_id) {

@@ -2938,6 +2938,11 @@
       if (data && data.success && data.settings) {
         const s = data.settings;
         setValue('meta-pixel-id', s.meta_pixel_id || '');
+        setValue('meta-pageview-pixel-id', s.meta_pageview_pixel_id || '');
+        const pvEnabledCheck = document.getElementById('meta-pageview-enabled');
+        if (pvEnabledCheck) pvEnabledCheck.checked = s.meta_pageview_enabled !== false;
+        const pvMainCheck = document.getElementById('meta-pageview-main-also');
+        if (pvMainCheck) pvMainCheck.checked = s.meta_pageview_on_main !== false;
         setValue('meta-capi-token', s.meta_capi_token || '');
         setValue('meta-test-code', s.meta_test_event_code || '');
         setValue('gtm-id', s.gtm_id || '');
@@ -2963,6 +2968,9 @@
 
     const payload = {
       meta_pixel_id: document.getElementById('meta-pixel-id')?.value.trim() || '',
+      meta_pageview_pixel_id: document.getElementById('meta-pageview-pixel-id')?.value.trim() || '',
+      meta_pageview_enabled: document.getElementById('meta-pageview-enabled')?.checked ?? true,
+      meta_pageview_on_main: document.getElementById('meta-pageview-main-also')?.checked ?? true,
       meta_capi_token: document.getElementById('meta-capi-token')?.value.trim() || '',
       meta_test_event_code: document.getElementById('meta-test-code')?.value.trim() || '',
       gtm_id: document.getElementById('gtm-id')?.value.trim() || '',

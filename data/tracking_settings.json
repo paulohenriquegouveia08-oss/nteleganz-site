@@ -1,5 +1,8 @@
 {
   "meta_pixel_id": "",
+  "meta_pageview_pixel_id": "",
+  "meta_pageview_enabled": true,
+  "meta_pageview_on_main": true,
   "meta_capi_token": "",
   "meta_test_event_code": "",
   "gtm_id": "",
@@ -8,5 +11,5 @@
   "google_ads_conversion_label": "",
   "tiktok_pixel_id": "",
   "active": true,
-  "updatedAt": "2026-10-07T10:30:00Z"
+  "updatedAt": "2026-10-08T16:30:00Z"
 }

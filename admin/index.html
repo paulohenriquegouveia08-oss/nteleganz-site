@@ -742,15 +742,39 @@
             <div class="settings-form">
               <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
                 <div class="form-group">
-                  <label>Meta Pixel ID * <span style="color:var(--gold);font-weight:700;">(este é o pixel base)</span></label>
+                  <label>Meta Pixel ID (Principal / Conversões & CAPI) *</label>
                   <input type="text" class="form-control" id="meta-pixel-id" placeholder="Ex: 123456789012345" />
-                  <small class="form-hint">É o pixel que fica "no topo do site". Ao salvar aqui, ele é instalado em <strong>todas as páginas</strong> e dispara o <strong>PageView</strong> automaticamente — não precisa editar index/HTML. Encontrado no Gerenciador de Eventos da Meta.</small>
+                  <small class="form-hint">Pixel principal da loja. Recebe eventos de conversão (Lead, AddToCart, InitiateCheckout, Purchase) e alimenta a API de Conversões (CAPI).</small>
+                </div>
+
+                <div class="form-group">
+                  <label>Pixel ID do PageView <span style="color:var(--gold);font-weight:700;">(Topo de Funil / Opcional)</span></label>
+                  <input type="text" class="form-control" id="meta-pageview-pixel-id" placeholder="Ex: 987654321098765 (ou deixe vazio para usar o principal)" />
+                  <small class="form-hint">Pixel configurável para o evento de <strong>PageView</strong> em todas as páginas. Se deixado vazio, utiliza automaticamente o Meta Pixel ID principal.</small>
                 </div>
 
                 <div class="form-group">
                   <label>Código de Teste de Evento (Opcional)</label>
                   <input type="text" class="form-control" id="meta-test-code" placeholder="Ex: TEST12345" />
-                  <small class="form-hint">Aba "Testar eventos" no Gerenciador de Eventos (apague após validar).</small>
+                  <small class="form-hint">Aba "Testar eventos" no Gerenciador de Eventos da Meta (apague após validar).</small>
+                </div>
+              </div>
+
+              <!-- Controle do Evento PageView -->
+              <div style="margin-top:12px; padding:12px 14px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); display:flex; flex-direction:column; gap:8px;">
+                <div style="font-size:12px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Controle de Disparo do PageView
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:18px;">
+                  <label style="display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" id="meta-pageview-enabled" checked style="width:16px; height:16px; accent-color:var(--gold);" />
+                    Disparar PageView automaticamente ao carregar qualquer página
+                  </label>
+                  <label style="display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; cursor:pointer;">
+                    <input type="checkbox" id="meta-pageview-main-also" checked style="width:16px; height:16px; accent-color:var(--gold);" />
+                    Disparar PageView também no Pixel Principal (quando configurado pixel de PageView separado)
+                  </label>
                 </div>
               </div>
 
@@ -1047,7 +1071,7 @@
 <!-- Scripts -->
 <script src="../js/auth.js?v=20261007c"></script>
 <script src="../js/db.js?v=20261007c"></script>
-<script src="../js/admin.js?v=20261007c"></script>
+<script src="../js/admin.js?v=20261008"></script>
 <script>
   function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
