@@ -25,28 +25,37 @@ function defaultCategories(): array {
         [
             'id' => 'camisetas',
             'name' => 'Camisetas',
-            'image' => 'assets/images/category-camisetas.webp',
+            'image' => '/assets/images/category-camisetas.webp',
             'active' => true
         ],
         [
             'id' => 'shorts',
             'name' => 'Shorts',
-            'image' => 'assets/images/category-shorts.webp',
+            'image' => '/assets/images/category-shorts.webp',
             'active' => true
         ],
         [
             'id' => 'calcados',
             'name' => 'Calçados',
-            'image' => 'assets/images/category-calcados.webp',
+            'image' => '/assets/images/category-calcados.webp',
             'active' => true
         ],
         [
             'id' => 'hoodies',
             'name' => 'Hoodies',
-            'image' => 'assets/images/category-hoodies.webp',
+            'image' => '/assets/images/category-hoodies.webp',
             'active' => true
         ]
     ];
+}
+
+function normalizeCategoryImg(string $img): string {
+    $img = trim($img);
+    if ($img === '') return '/assets/images/category-camisetas.webp';
+    if (strpos($img, 'data:') === 0 || strpos($img, 'http://') === 0 || strpos($img, 'https://') === 0 || strpos($img, '/') === 0) {
+        return $img;
+    }
+    return '/' . ltrim($img, './');
 }
 
 function readCategories(): array {
@@ -57,7 +66,14 @@ function readCategories(): array {
     }
     $raw = @file_get_contents(CATEGORIES_FILE);
     $data = $raw ? @json_decode($raw, true) : null;
-    return is_array($data) ? $data : defaultCategories();
+    $list = is_array($data) ? $data : defaultCategories();
+    foreach ($list as &$item) {
+        if (isset($item['image'])) {
+            $item['image'] = normalizeCategoryImg((string)$item['image']);
+        }
+    }
+    unset($item);
+    return $list;
 }
 
 function saveCategories(array $categories): bool {
@@ -96,7 +112,7 @@ function saveBase64Image(string $base64Data, string $slug): ?string {
 
     $filename = sprintf('category-%s-%d.webp', $slug, time());
     $destPath = CATEGORIES_IMG_DIR . $filename;
-    $publicPath = 'assets/images/categories/' . $filename;
+    $publicPath = '/assets/images/categories/' . $filename;
 
     // Converte para WebP com GD se disponível
     if (function_exists('imagecreatefromstring')) {
@@ -135,7 +151,7 @@ function saveBase64Image(string $base64Data, string $slug): ?string {
     $rawFilename = sprintf('category-%s-%d.%s', $slug, time(), $ext);
     $rawPath = CATEGORIES_IMG_DIR . $rawFilename;
     if (@file_put_contents($rawPath, $binary)) {
-        return 'assets/images/categories/' . $rawFilename;
+        return '/assets/images/categories/' . $rawFilename;
     }
 
     return null;

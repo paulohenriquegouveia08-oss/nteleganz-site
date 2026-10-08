@@ -2,25 +2,25 @@
   {
     "id": "camisetas",
     "name": "Camisetas",
-    "image": "assets/images/category-camisetas.webp",
+    "image": "/assets/images/category-camisetas.webp",
     "active": true
   },
   {
     "id": "shorts",
     "name": "Shorts",
-    "image": "assets/images/category-shorts.webp",
+    "image": "/assets/images/category-shorts.webp",
     "active": true
   },
   {
     "id": "calcados",
     "name": "Calçados",
-    "image": "assets/images/category-calcados.webp",
+    "image": "/assets/images/category-calcados.webp",
     "active": true
   },
   {
     "id": "hoodies",
     "name": "Hoodies",
-    "image": "assets/images/category-hoodies.webp",
+    "image": "/assets/images/category-hoodies.webp",
     "active": true
   }
 ]

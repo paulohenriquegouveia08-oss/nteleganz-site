@@ -3090,6 +3090,13 @@
   // ── CATEGORIAS DA LOJA (Gestão de Coleções) ──
   let allCategories = [];
 
+  function resolveCategoryImg(img) {
+    if (!img) return '/assets/images/category-camisetas.webp';
+    if (img.startsWith('data:') || img.startsWith('http://') || img.startsWith('https://')) return img;
+    if (img.startsWith('/')) return img;
+    return '/' + img.replace(/^\.\.\//, '').replace(/^\.\//, '');
+  }
+
   window.loadCategories = async function (forceRefresh = false) {
     const grid = document.getElementById('categories-grid');
     const countEl = document.getElementById('categories-result-count');
@@ -3110,10 +3117,10 @@
       console.warn('Erro ao carregar categorias da API:', e);
       if (!allCategories.length) {
         allCategories = [
-          { id: 'camisetas', name: 'Camisetas', image: 'assets/images/category-camisetas.webp', active: true },
-          { id: 'shorts', name: 'Shorts', image: 'assets/images/category-shorts.webp', active: true },
-          { id: 'calcados', name: 'Calçados', image: 'assets/images/category-calcados.webp', active: true },
-          { id: 'hoodies', name: 'Hoodies', image: 'assets/images/category-hoodies.webp', active: true }
+          { id: 'camisetas', name: 'Camisetas', image: '/assets/images/category-camisetas.webp', active: true },
+          { id: 'shorts', name: 'Shorts', image: '/assets/images/category-shorts.webp', active: true },
+          { id: 'calcados', name: 'Calçados', image: '/assets/images/category-calcados.webp', active: true },
+          { id: 'hoodies', name: 'Hoodies', image: '/assets/images/category-hoodies.webp', active: true }
         ];
       }
     }
@@ -3144,14 +3151,14 @@
     }
 
     grid.innerHTML = allCategories.map(cat => {
-      const imgSrc = cat.image || 'assets/images/category-camisetas.webp';
+      const imgSrc = resolveCategoryImg(cat.image);
       const safeName = (cat.name || '').replace(/"/g, '&quot;');
       const safeId = (cat.id || '').replace(/"/g, '&quot;');
 
       return `
         <div class="category-admin-card" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; box-shadow: var(--shadow-sm);">
           <div style="position: relative; width: 100%; aspect-ratio: 3/4; background: #0a0a0a; overflow: hidden;">
-            <img src="${imgSrc}" alt="${safeName}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='assets/images/category-camisetas.webp'" />
+            <img src="${imgSrc}" alt="${safeName}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null; this.src='/assets/images/category-camisetas.webp';" />
             <div style="position: absolute; top: 12px; right: 12px;">
               <span class="badge ${cat.active !== false ? 'badge-success' : 'badge-inactive'}" style="font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 4px; background: rgba(0,0,0,0.65); color: #fff; backdrop-filter: blur(4px);">
                 ${cat.active !== false ? 'Ativa' : 'Inativa'}
@@ -3229,7 +3236,7 @@
         if (idInput) idInput.value = cat.id;
         if (nameInput) nameInput.value = cat.name || '';
         if (imgValInput) imgValInput.value = cat.image || '';
-        if (previewImg) previewImg.src = cat.image || '';
+        if (previewImg) previewImg.src = resolveCategoryImg(cat.image);
         if (previewLabel) previewLabel.textContent = 'Imagem Atual';
         if (previewBox) previewBox.style.display = cat.image ? 'block' : 'none';
       }
