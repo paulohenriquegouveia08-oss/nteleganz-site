@@ -222,7 +222,7 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking.php') {
 
     if ($method === 'GET') {
         $settings = readTrackingSettings();
-        $isAdmin = isAdminAuthenticated() || (isset($_GET['admin']) && $_GET['admin'] === '1');
+        $isAdmin = isAdminAuthenticated();
 
         if ($isAdmin) {
             echo json_encode(['success' => true, 'settings' => $settings]);
@@ -248,6 +248,14 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking.php') {
     }
 
     if ($method === 'POST') {
+        // Toda escrita (salvar settings e disparo de teste CAPI) exige
+        // admin autenticado — o painel envia o Bearer token da sessao.
+        if (!isAdminAuthenticated()) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Não autorizado. Faça login como administrador.']);
+            exit;
+        }
+
         $raw = file_get_contents('php://input');
         $input = $raw ? json_decode($raw, true) : null;
 
