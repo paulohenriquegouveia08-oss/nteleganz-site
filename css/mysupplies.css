@@ -780,10 +780,15 @@ body {
 }
 
 .catalog-category-section .how-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: clamp(10px, 1.3vw, 20px);
 }
 
 .catalog-category-section .how-item {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
   min-height: clamp(330px, 35vw, 520px);
   justify-content: flex-end;
   padding: 0;

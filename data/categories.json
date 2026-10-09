@@ -22,5 +22,11 @@
     "name": "Hoodies",
     "image": "/assets/images/category-hoodies.webp",
     "active": true
+  },
+  {
+    "id": "acessorios",
+    "name": "Acessórios",
+    "image": "/assets/images/categories/category-acessorios-1791504234.webp",
+    "active": true
   }
 ]

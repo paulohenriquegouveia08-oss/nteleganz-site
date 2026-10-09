@@ -41,12 +41,15 @@
       const defaultFolders = ['camisetas', 'shorts', 'calcados', 'hoodies'];
       grid.innerHTML = activeCats.map(cat => {
         const href = defaultFolders.includes(cat.id) ? `/collections/${cat.id}/` : `/collections/?categoria=${encodeURIComponent(cat.id)}`;
-        const imgSrc = cat.image || 'assets/images/category-camisetas.webp';
+        let imgSrc = cat.image || '/assets/images/category-camisetas.webp';
+        if (!imgSrc.startsWith('data:') && !imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+          imgSrc = '/' + imgSrc.replace(/^\.\.\//, '').replace(/^\.\//, '');
+        }
         const name = cat.name || '';
         return `
-          <a class="how-item" href="${href}" data-reveal>
+          <a class="how-item revealed" href="${href}" style="opacity: 1 !important; transform: none !important; visibility: visible !important;">
             <span class="how-cover">
-              <img src="${imgSrc}" alt="${name}" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='assets/images/category-camisetas.webp'">
+              <img src="${imgSrc}" alt="${name}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null; this.src='/assets/images/category-camisetas.webp';">
             </span>
             <h3 class="how-title">${name}</h3>
           </a>

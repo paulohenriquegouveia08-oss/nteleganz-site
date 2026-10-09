@@ -3257,7 +3257,7 @@
     if (modal) modal.classList.remove('active');
   };
 
-  window.handleCategoryImageSelect = function (event) {
+  window.handleCategoryImageSelect = async function (event) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -3266,20 +3266,21 @@
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const dataUrl = e.target.result;
+    try {
+      const dataUrl = await readImage(file);
+      const optimizedWebp = await resizeImageToWebP(dataUrl, 1000, 0.82);
       const imgValInput = document.getElementById('cat-image-val');
       const previewBox = document.getElementById('cat-preview-box');
       const previewImg = document.getElementById('cat-preview-img');
       const previewLabel = document.getElementById('cat-preview-label');
 
-      if (imgValInput) imgValInput.value = dataUrl;
-      if (previewImg) previewImg.src = dataUrl;
+      if (imgValInput) imgValInput.value = optimizedWebp;
+      if (previewImg) previewImg.src = optimizedWebp;
       if (previewLabel) previewLabel.textContent = 'Nova imagem selecionada';
       if (previewBox) previewBox.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      alert('Erro ao processar imagem: ' + err.message);
+    }
   };
 
   window.removeCategorySelectedImage = function () {
