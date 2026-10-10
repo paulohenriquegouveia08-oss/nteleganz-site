@@ -62,8 +62,21 @@ function saveTrackingSettings(array $settings): bool {
 
 function isAdminAuthenticated(): bool {
     $token = '';
-    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+
+    // LiteSpeed/Apache no Hostinger as vezes NAO expoe HTTP_AUTHORIZATION em
+    // $_SERVER — busca o header tambem via apache_request_headers(), igual ao
+    // que api/products.php ja faz. Sem isto o Bearer token nunca chega e todo
+    // POST autenticado do painel falha com 401.
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION']
+        ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+        ?? '';
+    if ($authHeader === '' && function_exists('apache_request_headers')) {
+        foreach (apache_request_headers() as $key => $value) {
+            if (strcasecmp($key, 'Authorization') === 0) { $authHeader = (string)$value; break; }
+        }
+    }
+
+    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
         $token = trim($matches[1]);
     } elseif (!empty($_GET['token'])) {
         $token = trim((string)$_GET['token']);
