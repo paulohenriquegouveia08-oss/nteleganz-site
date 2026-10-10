@@ -101,6 +101,21 @@
     })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
   }
 
+  // Normaliza um Pixel ID: aceita o numero puro, OU extrai o numero caso
+  // alguem cole o snippet inteiro do Pixel (fbq('init','<num>')) ou um
+  // trecho com ...tr?id=<num>. Evita um fbq('init') invalido por engano.
+  function cleanPixelId(raw) {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    if (/^\d{6,20}$/.test(v)) return v;
+    const init = v.match(/fbq\(\s*['"]init['"]\s*,\s*['"](\d{6,20})['"]/i);
+    if (init) return init[1];
+    const idp = v.match(/[?&]id=(\d{6,20})/);
+    if (idp) return idp[1];
+    const long = v.match(/\d{13,20}/);
+    return long ? long[0] : '';
+  }
+
   function setupMetaPixels(cfg) {
     const basePixelId = (cfg.meta_pixel_id || '').trim();
     const pageviewPixelId = (cfg.meta_pageview_pixel_id || '').trim();
@@ -453,6 +468,9 @@
       const data = await res.json();
       if (data && data.success && data.settings && data.settings.active) {
         trackingConfig = data.settings;
+        // Blinda contra ID colado como snippet/HTML: mantem so o numero.
+        trackingConfig.meta_pixel_id = cleanPixelId(trackingConfig.meta_pixel_id);
+        trackingConfig.meta_pageview_pixel_id = cleanPixelId(trackingConfig.meta_pageview_pixel_id);
 
         if (trackingConfig.meta_pixel_id || trackingConfig.meta_pageview_pixel_id) {
           setupMetaPixels(trackingConfig);
