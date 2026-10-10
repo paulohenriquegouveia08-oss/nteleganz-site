@@ -60,13 +60,32 @@ function saveTrackingSettings(array $settings): bool {
     );
 }
 
-function isAdminAuthenticated(): bool {
-    $token = '';
+const TRACKING_SUPABASE_URL = 'https://erpyzjxtxztokpxxpirq.supabase.co';
+const TRACKING_SUPABASE_ANON_KEY = 'sb_publishable_vvD9OIWTX6dzYm9fFTa4yw_aRLZfYwU';
 
+/**
+ * Valida a sessao do admin. Aceita os DOIS formatos que o painel usa (igual
+ * ao api/products.php):
+ *   - token de sessao local em data/admin_sessions.json (login via
+ *     api/admin_auth.php); ou
+ *   - JWT do Supabase (quando o login caiu no fallback do Supabase), validado
+ *     contra /auth/v1/user + a tabela admin_users.
+ * Sem token => false (storefront publico nao dispara chamada ao Supabase).
+ */
+function isAdminAuthenticated(): bool {
+    $token = extractAdminToken();
+    if ($token === '') return false;
+    if (isLocalAdminSession($token)) return true;
+
+    $userId = supabaseAuthUserId($token);
+    if ($userId === null) return false;
+    return isSupabaseAdminUser($token, $userId);
+}
+
+function extractAdminToken(): string {
     // LiteSpeed/Apache no Hostinger as vezes NAO expoe HTTP_AUTHORIZATION em
     // $_SERVER — busca o header tambem via apache_request_headers(), igual ao
-    // que api/products.php ja faz. Sem isto o Bearer token nunca chega e todo
-    // POST autenticado do painel falha com 401.
+    // api/products.php. Sem isto o Bearer token do painel nunca chega.
     $authHeader = $_SERVER['HTTP_AUTHORIZATION']
         ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
         ?? '';
@@ -75,20 +94,51 @@ function isAdminAuthenticated(): bool {
             if (strcasecmp($key, 'Authorization') === 0) { $authHeader = (string)$value; break; }
         }
     }
+    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $m)) return trim($m[1]);
+    if (!empty($_GET['token'])) return trim((string)$_GET['token']);
+    return '';
+}
 
-    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $matches)) {
-        $token = trim($matches[1]);
-    } elseif (!empty($_GET['token'])) {
-        $token = trim((string)$_GET['token']);
-    }
-
-    if (!$token) return false;
-
+function isLocalAdminSession(string $token): bool {
     $sessionFile = __DIR__ . '/../data/admin_sessions.json';
     if (!file_exists($sessionFile)) return false;
-
     $sessions = @json_decode(@file_get_contents($sessionFile), true);
     return is_array($sessions) && isset($sessions[$token]) && ($sessions[$token]['expires_at'] ?? 0) > time();
+}
+
+function trackingSupabaseRequest(string $path, string $token, string $query = ''): array {
+    $ch = curl_init(TRACKING_SUPABASE_URL . $path . ($query !== '' ? ('?' . $query) : ''));
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'apikey: ' . TRACKING_SUPABASE_ANON_KEY,
+            'Authorization: Bearer ' . $token,
+            'Accept: application/json',
+        ],
+        CURLOPT_TIMEOUT => 15,
+    ]);
+    $body = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return [$status, $body === false ? '' : $body];
+}
+
+function supabaseAuthUserId(string $token): ?string {
+    [$status, $body] = trackingSupabaseRequest('/auth/v1/user', $token);
+    if ($status !== 200) return null;
+    $data = json_decode($body, true);
+    return is_array($data) && !empty($data['id']) ? (string)$data['id'] : null;
+}
+
+function isSupabaseAdminUser(string $token, string $userId): bool {
+    if ($userId === '') return false;
+    [$status, $body] = trackingSupabaseRequest('/rest/v1/admin_users', $token, 'select=role,active&user_id=eq.' . urlencode($userId));
+    if ($status !== 200) return false;
+    $rows = json_decode($body, true);
+    if (!is_array($rows) || count($rows) === 0) return false;
+    $admin = $rows[0];
+    return isset($admin['role']) && $admin['role'] === 'admin'
+        && (!array_key_exists('active', $admin) || $admin['active'] === true);
 }
 
 /**
@@ -233,28 +283,6 @@ function sendMetaConversionsApiPurchase(array $orderData): array {
 if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking.php') {
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-    // [DIAG TEMPORARIO] sonda de header de auth — remover apos diagnostico.
-    // So devolve booleanos, nunca token/configs.
-    if (($_GET['diag'] ?? '') === 'authprobe') {
-        $viaServer = isset($_SERVER['HTTP_AUTHORIZATION']) && $_SERVER['HTTP_AUTHORIZATION'] !== '';
-        $viaRedirect = isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] !== '';
-        $viaApache = false;
-        if (function_exists('apache_request_headers')) {
-            foreach (apache_request_headers() as $k => $v) {
-                if (strcasecmp($k, 'Authorization') === 0 && $v !== '') { $viaApache = true; break; }
-            }
-        }
-        echo json_encode([
-            'probe' => true,
-            'build' => 'dbc68c9+diag',
-            'has_apache_request_headers' => function_exists('apache_request_headers'),
-            'auth_via_server' => $viaServer,
-            'auth_via_redirect' => $viaRedirect,
-            'auth_via_apache' => $viaApache,
-            'authenticated' => isAdminAuthenticated(),
-        ]);
-        exit;
-    }
 
     if ($method === 'GET') {
         $settings = readTrackingSettings();

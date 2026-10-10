@@ -2939,9 +2939,9 @@
     const alertEl = document.getElementById('tracking-alert');
     if (alertEl) alertEl.innerHTML = '';
     try {
-      const token = window.ntAuth?.getToken?.() || '';
-      const res = await fetch('/api/tracking.php?admin=1', {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      const authHeader = await getUploadAuthHeader();
+      const res = await fetch('/api/tracking.php', {
+        headers: authHeader ? { ...authHeader } : {},
         cache: 'no-store'
       });
       const data = await res.json();
@@ -2992,12 +2992,12 @@
     };
 
     try {
-      const token = window.ntAuth?.getToken?.() || '';
+      const authHeader = await getUploadAuthHeader();
       const res = await fetch('/api/tracking.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
+          ...(authHeader || {})
         },
         body: JSON.stringify(payload)
       });
@@ -3044,12 +3044,12 @@
     }
 
     try {
-      const token = window.ntAuth?.getToken?.() || '';
+      const authHeader = await getUploadAuthHeader();
       const res = await fetch('/api/tracking.php?test=meta', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : ''
+          ...(authHeader || {})
         },
         body: JSON.stringify({
           clientName: 'Teste Gestor Tráfego',
