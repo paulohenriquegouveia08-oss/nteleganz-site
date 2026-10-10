@@ -233,6 +233,29 @@ function sendMetaConversionsApiPurchase(array $orderData): array {
 if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking.php') {
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
+    // [DIAG TEMPORARIO] sonda de header de auth — remover apos diagnostico.
+    // So devolve booleanos, nunca token/configs.
+    if (($_GET['diag'] ?? '') === 'authprobe') {
+        $viaServer = isset($_SERVER['HTTP_AUTHORIZATION']) && $_SERVER['HTTP_AUTHORIZATION'] !== '';
+        $viaRedirect = isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) && $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] !== '';
+        $viaApache = false;
+        if (function_exists('apache_request_headers')) {
+            foreach (apache_request_headers() as $k => $v) {
+                if (strcasecmp($k, 'Authorization') === 0 && $v !== '') { $viaApache = true; break; }
+            }
+        }
+        echo json_encode([
+            'probe' => true,
+            'build' => 'dbc68c9+diag',
+            'has_apache_request_headers' => function_exists('apache_request_headers'),
+            'auth_via_server' => $viaServer,
+            'auth_via_redirect' => $viaRedirect,
+            'auth_via_apache' => $viaApache,
+            'authenticated' => isAdminAuthenticated(),
+        ]);
+        exit;
+    }
+
     if ($method === 'GET') {
         $settings = readTrackingSettings();
         $isAdmin = isAdminAuthenticated();
